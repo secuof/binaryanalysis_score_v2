@@ -2171,7 +2171,6 @@ def lookup_identifier(scanqueue, reportqueue, cursor, conn, scanenv, topleveldir
 								matchednonassignedlines += 1
 								linecount[line] = linecount[line] - 1
 								continue
-				        print(score)
 						## if it is assumed that the compiler puts string constants in the
 						## same order in the generated code then strings can be assigned
 						## to the package directly
