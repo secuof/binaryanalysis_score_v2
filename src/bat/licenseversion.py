@@ -1883,7 +1883,7 @@ def lookup_identifier(scanqueue, reportqueue, cursor, conn, scanenv, topleveldir
 			total_num_pkgs_query = "SELECT distinct(count(package)) FROM processed"
 			cursor.execute(total_num_pkgs_query)
 			total_num_pkgs = cursor.fetchall()
-			print(total_num_pkgs)
+			print(int(total_num_pkgs))
 
 			for line in lines:
 				#if scandebug:
