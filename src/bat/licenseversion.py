@@ -1880,10 +1880,38 @@ def lookup_identifier(scanqueue, reportqueue, cursor, conn, scanenv, topleveldir
 				lines.sort()
 
 			stringquery = "select package, filename FROM %s WHERE stringidentifier=" % stringsdbperlanguagetable[language] + "%s"
-			total_num_pkgs_query = "SELECT distinct(count(package)) FROM processed"
-			cursor.execute(total_num_pkgs_query)
-			total_num_pkgs = cursor.fetchone()[0]
-			print(total_num_pkgs)
+			if stringsdbperlanguagetable[language] == stringscache_actionscript:
+				print(stringsdbperlanguagetable[language])
+				total_num_pkgs = 141
+			elif stringsdbperlanguagetable[language] == stringscache_c:
+				print(stringsdbperlanguagetable[language])
+				total_num_pkgs = 24824
+			elif stringsdbperlanguagetable[language] == stringscache_java:
+				print(stringsdbperlanguagetable[language])
+				total_num_pkgs = 20255
+			elif stringsdbperlanguagetable[language] == stringscache_javascript:
+				print(stringsdbperlanguagetable[language])
+				total_num_pkgs = 7506
+			elif stringsdbperlanguagetable[language] == stringscache_php:
+				print(stringsdbperlanguagetable[language])
+				total_num_pkgs = 1950
+			elif stringsdbperlanguagetable[language] == stringscache_python:
+				print(stringsdbperlanguagetable[language])
+				total_num_pkgs = 12352
+			elif stringsdbperlanguagetable[language] == stringscache_ruby:
+				print(stringsdbperlanguagetable[language])
+				total_num_pkgs = 3048
+			elif stringsdbperlanguagetable[language] == varnamecache_c:
+				print(stringsdbperlanguagetable[language])
+				total_num_pkgs = 18390
+			else:
+				print(stringsdbperlanguagetable[language])
+				total_num_pkgs = 1
+			
+			# total_num_pkgs_query = "SELECT distinct(count(package)) FROM %s" % stringsdbperlanguagetable[language]
+			# cursor.execute(total_num_pkgs_query)
+			# total_num_pkgs = cursor.fetchone()[0]
+			# print(total_num_pkgs)
 
 			for line in lines:
 				#if scandebug:
