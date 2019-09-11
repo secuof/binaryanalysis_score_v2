@@ -1880,28 +1880,28 @@ def lookup_identifier(scanqueue, reportqueue, cursor, conn, scanenv, topleveldir
 				lines.sort()
 
 			stringquery = "select package, filename FROM %s WHERE stringidentifier=" % stringsdbperlanguagetable[language] + "%s"
-			if stringsdbperlanguagetable[language] == stringscache_actionscript:
+			if stringsdbperlanguagetable[language] == 'stringscache_actionscript':
 				print(stringsdbperlanguagetable[language])
 				total_num_pkgs = 141
-			elif stringsdbperlanguagetable[language] == stringscache_c:
+			elif stringsdbperlanguagetable[language] == 'stringscache_c':
 				print(stringsdbperlanguagetable[language])
 				total_num_pkgs = 24824
-			elif stringsdbperlanguagetable[language] == stringscache_java:
+			elif stringsdbperlanguagetable[language] == 'stringscache_java':
 				print(stringsdbperlanguagetable[language])
 				total_num_pkgs = 20255
-			elif stringsdbperlanguagetable[language] == stringscache_javascript:
+			elif stringsdbperlanguagetable[language] == 'stringscache_javascript':
 				print(stringsdbperlanguagetable[language])
 				total_num_pkgs = 7506
-			elif stringsdbperlanguagetable[language] == stringscache_php:
+			elif stringsdbperlanguagetable[language] == 'stringscache_php':
 				print(stringsdbperlanguagetable[language])
 				total_num_pkgs = 1950
-			elif stringsdbperlanguagetable[language] == stringscache_python:
+			elif stringsdbperlanguagetable[language] == 'stringscache_python':
 				print(stringsdbperlanguagetable[language])
 				total_num_pkgs = 12352
-			elif stringsdbperlanguagetable[language] == stringscache_ruby:
+			elif stringsdbperlanguagetable[language] == 'stringscache_ruby':
 				print(stringsdbperlanguagetable[language])
 				total_num_pkgs = 3048
-			elif stringsdbperlanguagetable[language] == varnamecache_c:
+			elif stringsdbperlanguagetable[language] == 'varnamecache_c':
 				print(stringsdbperlanguagetable[language])
 				total_num_pkgs = 18390
 			else:
