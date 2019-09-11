@@ -1,0 +1,139 @@
+\documentclass[11pt]{beamer}
+
+\usepackage{url}
+\usepackage{tikz}
+%\author{Armijn Hemel}
+\title{Using the Binary Analysis Tool - part 4}
+\date{}
+
+\begin{document}
+
+\setlength{\parskip}{4pt}
+
+\frame{\titlepage}
+
+\frame{
+\frametitle{Subjects}
+In this course you will learn:
+
+\begin{itemize}
+\item to browse results of a scan made with the Binary Analysis Tool
+\end{itemize}
+}
+
+\frame{
+\frametitle{Starting the Binary Analysis Tool result viewer}
+The Binary Analysis Tool result viewer is a Python program using wxPython. It can be invoked using the command:
+
+\texttt{batgui}
+
+which will launch the GUI.
+}
+
+\frame{
+\frametitle{Alternative viewer}
+An alternative viewer using Qt can be found at:
+
+\url{https://github.com/monkeyiq/batgui2}
+
+The rest of this training will be using the original \texttt{batgui}.
+}
+
+\frame{
+\frametitle{Loading a file in the BAT result viewer}
+
+Via File $\rightarrow$ Open in the menu a result file can be loaded and displayed.
+
+On the left there will be a file tree, on the right results for individual files will be displayed.
+}
+
+\frame{
+\frametitle{Filtering results in the BAT result viewer}
+Not every file type might be interesting. To unclutter the user interface and the directory tree a display filter is present that will hide certain file types from the directory tree.
+
+Configuration $\rightarrow$ Filter Configuration will show a list of checkboxes of file types to ignore.
+}
+
+\frame{
+\frametitle{Interpreting results of a scan}
+For each file a few attributes will be shown by default:
+
+\begin{itemize}
+\item name of the binary
+\item absolute file path
+\item relative file path if it is nested and parent is an unpacked compressed file or file system
+\item size
+\item SHA256 checksum
+\item tags
+\end{itemize}
+
+In addition results of file specific scans might be shown (architecture, shared libraries, etcetera)
+}
+
+\frame{
+\frametitle{Interpreting results of advanced ranking scan}
+If the advanced ranking scan is enabled a lot more information becomes available:
+
+\begin{itemize}
+\item function names matching
+\item string constants matching
+\item version number guess
+\item possible licenses guess
+\end{itemize}
+
+This information should be carefully analysed and not blindly trusted.
+}
+
+\frame{
+\frametitle{Interpreting results: function names}
+For dynamically linked ELF executables unique function names (if matched) will be displayed.
+
+Many unique function names is a clear indicator of software reuse.
+}
+
+\frame{
+\frametitle{Interpreting results: string constants (1)}
+For a good classification the following things are important:
+
+\begin{itemize}
+\item amount of matched string constants
+\item distribution of matched string constants
+\end{itemize}
+
+If there are only few strings that can be matched, the results are likely to be not very reliable.
+
+An even distribution of scores, combined with few matched unique strings and non-unique strings means that nothing was reliably matched.
+}
+
+\frame{
+\frametitle{Interpreting results: string constants (2)}
+The advanced ranking scan will create two pie charts. The first pie chart details how the algorithm classfied the strings (unique matches, assigned matches, unmatched, and so on), the second pie chart depicts the score for each packages.
+
+The first pie charts determines the fidelity of the second pie chart: if many strings (dozens, hundreds) could be matched and assigned to a package (either a unique or non-unique match), then the second pie chart will have a high fidelity. If just a handful strings could be matched, the second pie chart has a low fidelity.
+}
+
+\frame{
+\frametitle{Interpreting results: version numbers for unique strings}
+Based on unique strings BAT tries to determine version numbers of matched packages.
+
+Because version number guessing is tied to unique strings version number guessing is not reliable if there are just a few unique strings.
+}
+
+\frame{
+\frametitle{Interpreting results: license guess}
+Based on unique strings BAT tries to determine possible used licenses for matched packages.
+
+License guessing is likely to be unreliable if there are just a few unique strings. Versions are not taken into account (yet) when determining the license: all possible licenses are reported, also if the software is relicensed in some version.
+}
+
+\frame{
+\frametitle{Conclusion}
+In this course you have learned about:
+
+\begin{itemize}
+\item to browse results of a scan made with the Binary Analysis Tool
+\end{itemize}
+
+In the next course we will dig into how the Binary Analysis Tool can be extended.
+}
+\end{document}

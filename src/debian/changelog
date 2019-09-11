@@ -1,0 +1,305 @@
+bat (37.0) unstable; urgency=high
+
+  * FINAL RELEASE OF BAT
+  * prevent crash in processing filenames with 'weird' character
+  * proper cleanup after lzop barf
+  * allow storing of top level JSON files in a separate directory
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Wed, 26 Jul 2017 00:49:14 +0200
+
+bat (36.0) unstable; urgency=high
+
+  * prevent several crashes in processing Android files
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Sat, 31 Dec 2016 16:18:00 +0100
+
+bat (35.0) unstable; urgency=high
+
+  * prevent crash in case ELF file is corrupt
+  * prevent crash in case Linux kernel file is corrupt
+  * add configuration for WAV checker
+  * add AIFF checker
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Tue, 6 Dec 2016 22:32:40 +0100
+
+bat (34.0) unstable; urgency=high
+
+  * prevent crash in gzip crc checking
+  * make tag filtering more granular (example: filter when tags are added as
+    well)
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Wed, 30 Nov 2016 02:45:40 +0100
+
+bat (33.0) unstable; urgency=high
+
+  * add support for OAT variant
+  * prevent crash related to Python bug for crc32
+  * make maximum size of file for computing TLSH configurable
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Thu, 24 Nov 2016 07:53:40 +0100
+
+bat (32.0) unstable; urgency=high
+
+  * remove dependency on bat-extratools-java and java
+  * add more information to JSON
+  * fix ELF parsing crash
+  * pass database connection and cursor to prerun scans
+  * pass file hashes to prerun scans and leaf scans
+  * fix to unpack lzo compressed Linux kernel images
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Fri, 11 Nov 2016 09:21:20 +0100
+
+bat (31.0) unstable; urgency=high
+
+  * add ELF carver
+  * allow comments in iHex files
+  * remove dependency on gifinfo
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Wed, 2 Nov 2016 08:27:20 +0100
+
+bat (30.0) unstable; urgency=high
+
+  * expose more information in ELF module
+  * add more information to JSON output file
+  * by default pack all the JSON files in the top level directory
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Mon, 10 Oct 2016 00:02:31 +0200
+
+bat (29.0) unstable; urgency=high
+
+  * fix loading of modular configurations if all configurations are in the
+    same directory
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Mon, 10 Oct 2016 00:02:31 +0200
+
+bat (28.0) unstable; urgency=high
+
+  * fix loading of modular configurations
+  * ELF processing: return if no valid type can be found
+  * better pack200 carving
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Sat, 8 Oct 2016 23:27:51 +0200
+
+bat (27.0) unstable; urgency=high
+
+  * replace several external dependencies
+  * reduce memory consumption
+  * several crasher fixes
+  * much more (see ChangeLog)
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Mon, 12 Sep 2016 22:01:31 +0200
+
+bat (26.0) unstable; urgency=high
+
+  * remove sqlite from scanning engine
+  * remove several external dependencies
+  * allow carving of several more file types
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Thu, 23 Jun 2016 20:37:31 +0200
+
+bat (25.0) unstable; urgency=high
+
+  * tag and unpack Android backup files
+  * make gzip compression of some data optional
+  * unpack Intel iHex files
+  * don't try to clean up database connections twice in JSON reporting
+  * add simple copyright extractor
+  * unpack Parrot PLF files
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Tue, 29 Mar 2016 12:24:31 +0200
+
+bat (24.0) unstable; urgency=high
+
+  * many performance fixes for lots of file systems
+  * crasher bug fixes
+  * tagging more files
+  * reduced database connections (PostgreSQL) when scanning in directory mode
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Wed, 27 Jan 2016 17:21:51 +0100
+
+bat (23.0) unstable; urgency=high
+
+  * many performance and crash fixes (see ChangeLog)
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Wed, 27 Jan 2015 17:28:31 +0100
+
+bat (22.0) unstable; urgency=medium
+
+  * fixes to work with older versions of Python, readelf, xz
+  * dependency information fixes
+  * configuration default fixes
+  * sanity checks for top level file (empty, socket, pipe, etc.)
+  * fixes for directory mode scanning: subdirectories are now supported
+  * fixes for ZIP unpack failure cleaning
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Fri, 29 May 2015 18:59:31 +0200
+
+bat (21.0) unstable; urgency=high
+
+  * add support for PostgreSQL
+  * unpack more YAFFS2 file systems and older Android images
+  * improvements to Squashfs, JFFS2, ELF, GIF, ZIP unpacking
+  * export of results to JSON
+  * more (see ChangeLog)
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Thu, 21 May 2015 11:34:31 +0200
+
+bat (20.0) unstable; urgency=medium
+
+  * better handle encrypted ZIP files
+  * findlibs.py enabled by default
+  * add "phase" and "scan" conflict detection
+  * use SPDX names for reporting (as much as possible)
+  * script to visualise Linux kernel module linking
+  * security: try to detect shell commands in binaries (possibly using unchecked input)
+  * security: try to find XOR keys used for "encrypting" binaries
+  * security: start on password cracking/detection with JtR
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Sun, 15 Mar 2015 17:21:31 +0100
+
+bat (19.0) unstable; urgency=high
+
+  * deprecate support for Ubuntu < 14.04
+  * extra sanity checks/speedups for compress unpacking
+  * fixes for JFFS2 unpacking and squashfs unpacking
+  * fix GIF blacklisting
+  * smaller fixes (see ChangeLog)
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Fri, 4 Jul 2014 20:43:31 +0200
+
+bat (18.0) unstable; urgency=high
+
+  * fix JFFS2 and EXE 7z unpacking
+  * fix for identifier.py if DEX_TMPDIR was not set
+  * fix for scoring for assigned strings
+  * smaller fixes (see ChangeLog)
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Tue, 29 Apr 2014 12:52:31 +0200
+
+bat (17.0) unstable; urgency=high
+
+  * add Android file system unpacking
+  * fix Java aggregation
+  * unescape output from jcf-dump
+  * prevent I/O for big file unpacking, resulting in big speed ups
+  * rename executables and configuration files
+  * split identifier extraction and identifier assignment
+  * optionally assign strings based on order in which they appear in the
+    binary
+  * much more (see ChangeLog)
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Wed, 2 Apr 2014 20:31:31 +0200
+
+bat (16.0) unstable; urgency=high
+
+  * increased fidelity for Linux kernel scanning
+  * add additional piecharts for reporting
+  * unpacking deduplication
+  * name squashing for function names and variable names
+  * big endian cramfs + old cramfs support
+  * much more (see ChangeLog)
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Wed, 12 Mar 2014 19:20:43 +0100
+
+bat (15.0) unstable; urgency=high
+
+  * increased fidelity for Linux kernel scanning
+  * much reduced run time for ranking scan
+  * RZIP unpacking
+  * JFFS2 big endian support
+  * squashfs fidelity and security fixes
+  * LZMA unpacking fidelity fixes
+  * version chart generation with reportlab instead of pychart
+  * much much more (see ChangeLog)
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Thu, 10 Oct 2013 13:02:43 +0200
+bat (14.0) unstable; urgency=low
+
+  * fix cramfs unpacking
+  * expand dynamic ELF picture generation
+  * add kernel symbol scanning
+  * workarounds for crashes in squashfs unpacking
+  * add 'setup' hook for program scans, where setup code can be moved into
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Sat, 11 May 2013 17:33:03 +0200
+
+bat (13.0) unstable; urgency=low
+
+  * rework inner format to save massive amounts of memory
+  * merge and split several databases to use a more sane data model
+  * several blacklisting fixes
+  * deduplicate picture generation
+  * fix JAR aggregate scanning
+  * ZIP comment support
+  * several new configuration directives
+  * much much more (see ChangeLog)
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Thu, 18 Apr 2013 20:43:03 +0200
+
+bat (12.0) unstable; urgency=low
+
+  * add aggregate scanning
+  * romfs + squashfs + jffs2 + 7z fixes
+  * unlock more information (variables, Java methods + fields, etc.)
+  * combine licensing from FOSSology and Ninka
+  * much more (see ChangeLog)
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Mon, 21 Jan 2013 14:56:13 +0100
+
+bat (11.0) unstable; urgency=high
+
+  * fix file copying bug
+  * fix BusyBox configuration bug
+  * fix unnecessarily overwriting pickle result files bug
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Sun, 06 Jan 2013 17:26:13 +0100
+
+bat (10.0) unstable; urgency=low
+
+  * XZ unpacking fixes
+  * split creation of images into two separate methods that can be invoked
+    separately
+  * introduce new configuration parameters for more granular scanning
+  * new variant of squashfs
+  * much more (see ChangeLog)
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Fri, 14 Dec 2012 18:10:13 +0100
+
+bat (9.0) unstable; urgency=low
+
+  * GUI fixes
+  * ext2fs unpacking crash fix
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Thu, 4 Oct 2012 20:18:13 +0200
+
+bat (8.0) unstable; urgency=low
+
+  * GUI
+  * romfs unpacking
+  * minix fs v1 unpacking
+  * function name matching
+  * much more (see changelog)
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Tue, 22 May 2012 22:00:43 +0200
+
+bat (7.0) unstable; urgency=low
+
+  * Updated release, includes much new functionality. See ChangeLog in SVN repo for
+    details
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Tue, 24 Apr 2012 00:07:43 +0200
+
+
+bat (6.0) unstable; urgency=low
+
+  * Updated release, includes much new functionality. See ChangeLog in SVN repo for
+    details
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Thu, 12 Jan 2012 15:10:43 +0100
+
+bat (5.0) unstable; urgency=low
+
+  * Updated release, includes much new functionality. See ChangeLog in SVN repo for
+    details
+
+ -- Armijn Hemel <armijn@binaryanalysis.org>  Tue, 18 Oct 2011 19:13:43 +0200

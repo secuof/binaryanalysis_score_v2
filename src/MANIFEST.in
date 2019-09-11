@@ -1,0 +1,4 @@
+include bat-scan.config
+include bat/*
+include README
+include LICENSE

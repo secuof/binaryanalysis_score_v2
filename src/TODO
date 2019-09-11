@@ -1,0 +1,123 @@
+TODO:
+
+file systems:
+* FAT16 (use python-construct)
+* FAT32
+* MBR (use python-construct)
+* NTFS
+* more generic YAFFS2 support
+* squashfs as described at http://www.devttys0.com/2011/08/extracting-non-standard-squashfs-images/
+
+compression/executables:
+* E00
+* add special 7z case and test with D-Link firmware DSL-524T_FW_V3.00B01T02.UK-A.20060621.zip
+* better support for ZIP file comments http://www.pkware.com/documents/casestudies/APPNOTE.TXT
+* use python-pefile for PE analysis
+* NBG5615 uImage
+
+dynamic ELF scanning
+* take RPATH into account
+* add more functions from LSB and other standards
+
+queueing system:
+* let top level script also read from a queue
+* add script to add files to and remove files from scanning queue
+
+GUI:
+* rewrite to PyQt or PySide to take advantage of better rendering engine (webkit)
+* add reports to GUI for distribution checks
+* move detailed function name reports from overview to function name report
+* rework reporting of duplicate files
+* guireports.py: report all names for a certain checksum (for example if there are copies of a file under a different name)
+
+error handling:
+* better handle errors to give users a better indication if something went wrong
+
+database creation:
+* handle embedded archives (ZIP files, tarballs, etc.)
+* handle patches (both normal and unified)
+* import licensing information from SPDX files
+* extract more information from Linux kernel, including values from __ATTR and friends, as far as possible
+
+ranking:
+* combine string identifiers and function names to report most likely version
+* use (directly) assigned identifiers to determine the most likely version
+* use version information to report most likely licenses
+* use macholib to analyse Mach-O binaries (MacOS X)
+* if there are more results for file for a line (different line numbers), combine the two results and put the line numbers in a list (first do research to see if this makes sense)
+
+busybox scanning:
+* clean up finding ranges of applets in extract_configuration. It should be possible to do this less kludgy.
+
+HTML generation:
+* finish function name reporting (Java, Linux kernel)
+* rework variable name reporting
+* clean up/rewrite/make it easier to use
+* add license information if available
+
+misc:
+* replay script to unpack firmware based on only the pickle with unpacking data
+* add configuration option to set temporary directory prefix for all scans
+* add piecharts/reports per directory that summarise what is inside a directory (recursively, perhaps only if something was unpacked)
+* add per scan debug to allow better custom debugging
+* test on latest OpenSUSE
+* replace hardcoded options in reporting with values of 'storetarget'
+* tag webp files
+
+BOTTLENECKS/HIGH PRIORITY:
+1. ELF tagging is sometimes incorrect, so LZMA unpacker tries to extract LZMA files in vain from these ELF files, which costs a lot of time.
+2. update bat-fsck.cramfs to util-linux 2.24.2 (or wait for util-linux 2.25 to be used everywhere)
+3. replace own counters with collections.Counter(), also for code clarity
+4. better report non unique matched strings which are not clones
+5. verify and tag Android resources.arsc
+6. rework datastructures of ranking information (strings, function names, variables) so they are all similar
+7. handle "disk full" and other errors
+8. clean up for tagKnownExtension, add more extensions if possible. Research big firmwares for this to see which extensions to focus on first.
+9. Python 3 support
+10. don't recreate ELF graphs (model for every ELF binary), but reuse graphs of dependencies. This would need a topological sort.
+11. createdb.py: process UNSCANNED_DUPLICATE_FILES from BAT archives. This is needed if some of the unscanned duplicate files need to be processed.
+12. better report non unique matched strings which are not clones
+13. refactor name squashing
+14. find versions of matched kernel function names and report
+15. store meta data about media files (PNG, GIF, MP3, etc.) in database as some of these files are quite package specific
+16. try to find right ELF sections where string constants can be found
+17. fwunpack.py: add more sanity checks for GIF unpacking
+18. createdb.py: use and store output from Monk
+19. generatelistrpm.py: use information from rpm2cpio's --dump option to get checksums and better decide if files should be unpacked or not
+20. jffs2.py: support LZO
+21. ELF: extract information if a binary is not stripped, if possible, like paths
+22. bat/bruteforcescan.py: research passing information from unpackscans to leafscans (via environment?)
+23. add some sort of sanity checker for configuration
+24. bat/batxor.py: try to take 'partial XOR' into account (where only part of the file has been 'encrypted' with XOR)
+25. bat/batxor.py: report key that was used to XOR, possibly remove temporary file from directory tree
+26. createbatarchive.py: copy all unused files into archives (example: Makefiles for Linux kernel)
+27. createdb.py: add package clones to alias table
+28. createdb.py: start recording metadata for RPM files (such as applied patches). Do the same for DEB files, if possible/feasible.
+29. createdb.py: reimplement FOSSology's statement extractor and store results
+30. fwunpack.py: rework length check for 7z to not depend on US English locale
+31. try to detect Debian Packages files (for example: Raspbian)
+32. generatejson.py: try to make sure that all data that is dumped is actually UTF-8
+33. replace temporary filenames in more unpackers when no file information is available
+34. rework unsquashfs file size checking code
+35. 7z sanity checks (check major version)
+36. renamefiles.py: better deal with duplicates, since 'scanreports' will have been copied from another file, and renaming might not always work correctly
+37. extract kernel module signing information if present
+38. findlibs.py: detect more plugins (iptables) and integrate information about plugins in linking graphs of program they plug into
+39. ranking: indicate whether or not unique matches were repeated and if so how often
+40. ELF: extract information from debugging sections if possible
+41. createdb.py: separate Linux kernel code from 'support' code (scripts, etc.) and don't tag functions, variables, etc in the non-kernel code as 'linuxkernel'
+42. scrub credentials from bat configuration file before it is copied into the scan archive
+43. make summary that correlates information from many sources (ranking incl subscans, file2package, etc.) to come up with a guess of which packages are inside a binary
+44. generatejson.py: sort pickle files by size so json files are first generated for largest files.
+45. prerun.py: recognize JavaScript files using SlimIt
+46. createdb.py: extract JavaScript using xgettext (0.18.3 or later, as 0.18.2 has no support for JavaScript on Fedora) or SlimIt
+47. identifier.py: extract JavaScript using xgettext (0.18.3 or later, as 0.18.2 has no support for JavaScript on Fedora) or SlimIt
+48. collect patterns of false positives and actively exclude them (series of HTML tags, country names, etc.).
+49. try to detect 'third party' copies in other packages and tag them in the database
+50. kernelsymbols.py: combine information from ranking with license field to see if the license field has been changed
+51. createdb.py: if Python files are used correct offsets for extracted copyright info
+52. fwunpack.py: better handle files that have weird Zip data, such as maven-pldoc-plugin-2.8-sources.jar from Maven
+53. bruteforcescan.py: pass tags or hints from prerun scan to unpack scans, for example to flag that a ZIP file has already been verified and several checks can be skipped
+54. add source code scanner for several files that are clearly source code files (for example: .java or .py files) and replace with a simple lookup in the database before running the binary scanner
+55. bruteforcescan.py: move certain checks/setup code from runscan() to a setup method as these will not change in between invocations in directory mode
+56. fwunpack.py: deal with dd size limits

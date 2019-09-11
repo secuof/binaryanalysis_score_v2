@@ -1,0 +1,877 @@
+#!/usr/bin/python
+
+#-*- coding: utf-8 -*-
+
+## Binary Analysis Tool
+## Copyright 2012-2015 Armijn Hemel for Tjaldur Software Governance Solutions
+## Licensed under Apache 2.0, see LICENSE file for details
+
+'''
+This is a program for viewing results of the Binary Analysis Tool.
+'''
+
+import sys, os, string, gzip, cPickle, bz2, tarfile, tempfile, copy
+from optparse import OptionParser
+import ConfigParser
+import wx, wx.html, wx.lib, wx.lib.statbmp, wx.aui, wx.lib.agw.flatnotebook
+import sqlite3, cgi
+
+helphtml = '''<html>
+<head><title>Binary Analysis Tool result viewer</title></head>
+<body>
+<h1>Binary Analysis tool result viewer</h1>
+<p>
+On the left you will find a tree that can be browsed. Results can be shown by clicking on the item. The tree contains extra information to help you get to the right information straightaway:
+
+<ul>
+<li>&empty; : the file is empty</li>
+<li>&rarr; : the file is a symbolic link, pointing to the file following &rarr;</li>
+<li>&#x24b6; : the file is an Android Dalvik file</li>
+<li>&#x24b8; : the file is a compressed file</li>
+<li>&#x24b9; : the file is a directory (possibly empty)</li>
+<li>&#x229c; : the file is a duplicate of another file</li>
+<li>&#x24bc; : the file is a graphics file</li>
+<li>&#x24c1; : the file contains a Linux kernel or Linux kernel module </li>
+<li>&#x24c7; : the file is a resources file</li>
+<li>&#x24c8; : the file is statically linked</li>
+<li>&#x24c9; : the file only contains text</li>
+<li>&#x272a; : strings were found that could be matched with Open Source software</li>
+</ul>
+</p>
+
+<p>
+On the right there are views of the file. There are eight main views of the file:
+
+<ol>
+<li>Overview</li>
+<li>Unique strings</li>
+<li>Assigned strings</li>
+<li>Unmatched strings</li>
+<li>Variable names</li>
+<li>Function names</li>
+<li>ELF analysis</li>
+<li>Alternate view (advanced mode only)</li>
+</ol>
+</p>
+<h2>Overview</h2>
+<p>
+The overview displays various types of information about the file, such as name, relative path inside a file system or compressed file, size, SHA256 checksum (if any), information about which packages were found (if available), and so on.
+</p>
+<p>
+If licensing information was available during scanning it is also displayed here. Licensing information is currently only based on unique matches. Non-unique matches are not taken into account. The licensing information is not per se correct!
+</p>
+<h2>Uniquely matched strings</h2>
+<p>
+In this window you will see a list of unique matches per package. For each unique match you will see:
+<ul>
+<li>file name</li>
+<li>version(s)</li>
+<li>line number</li>
+<li>SHA256 checksum</li>
+</ul>
+</p>
+<p>
+Each line number is clickable. If there is an archive of pregenerated HTML source code files the corresponding source code file will be shown when clicking on the link.
+</p>
+<p>
+If the characters { and } are in the version number it means that the version numbers have been collapsed for space reasons. The full version number can be reconstructed by taking the part before the { and a version number in between { and }. Example: "2.6.{0, 1, 2}" expands to "2.6.0, 2.6.1, 2.6.2".
+</p>
+<h2>Unmatched strings</h2>
+<p>
+In this tab you can find the strings that were not matched. These strings can contain useful hints about which packages are included, but not detected.
+</p>
+<h2>Variable names</h2>
+<p>
+This tab contains information about any variables (C), or fields (Java) were matched.
+</p>
+<h2>Function names</h2>
+<p>
+This tab contains information about any functions (C), or methods (Java) were matched.
+</p>
+<h2>ELF analysis</h2>
+<p>
+In this tab you will find information about ELF files, like which libraries were included and if symbols can be resolved with the files contained in the top level file. If possible a picture with the dynamic linking graph is included.
+</p>
+<h2>Alternate view (advanced mode only)</h2>
+<p>
+In this tab you will find two different representations of the binary file:
+
+<ol>
+<li>picture view: each byte value in the binary file has been assigned a grayscale value. Bytes with value <tt>0x00</tt> are black, bytes with value <tt>0xff</tt> are white. Other bytes are assigned values in between.</li>
+<li>hexdump view</li>
+</ol>
+</p>
+<p>
+By clicking somewhere on the picture the hexdump view will automatically scroll to the textual representation of the clicked byte. This will quickly allow you to view interesting boundaries.
+</p>
+<h1>Configuring the BAT viewer</h1>
+<h2>Display filters</h2>
+<p>
+Each file is tagged (if possible) by the scanning process. Filters for the following file types are currently defined:
+
+<ul>
+<li>audio files</li>
+<li>empty files</li>
+<li>graphics files</li>
+<li>PDF files</li>
+<li>resource files</li>
+<li>symbolic links</li>
+<li>text files</li>
+<li>video files</li>
+</ul>
+</p>
+<p>
+By default no filters have been applied. The filters can be accessed via Configuration &rarr; Filter Configuration.
+</p>
+<h2>Advanced mode</h2>
+<p>
+Advanced mode can be entered via Configuration &rarr; General Configuration. The box Advanced mode should be checked to enter advanced mode. As soon as advanced mode is entered extra data from the results file (if available) will be unpacked and an extra tab will appear. It is not advised to run advanced mode: it can be a big strain on resources.
+</p>
+</body>
+</html>
+'''
+
+## Specialized HTML window for handling links to pretty printed source code
+## Basically just replaces 'unique:/' with the proper path to the pretty printed
+## source code files.
+class BATHtmlWindow(wx.html.HtmlWindow):
+	def __init__(self, parent, target, htmldir):
+		wx.html.HtmlWindow.__init__(self, parent)
+		self.target = target
+		self.htmldir = htmldir
+	def setHtmlDir(self, htmldir):
+		self.htmldir = htmldir
+	def OnLinkClicked(self, link):
+		href = link.GetHref()
+		if href.startswith('unique:/'):
+			if self.htmldir == None:
+				self.target.SetPage("<html><body><h1>Configuration not complete</h1><p>htmldir not defined. Please supply a configuration file via the menu, or restart with a configuration file.</p></body></html>")
+				self.target.Refresh(True)
+				return
+			(linksha256sum, linenumber) = href[8:].split('#')
+			pphtml = bz2.BZ2File("%s/%s/%s/%s/%s.html.bz2" % (self.htmldir, linksha256sum[0], linksha256sum[1], linksha256sum[2], linksha256sum), 'r')
+			htmlcontent = pphtml.read()
+			pphtml.close()
+			## grab the sha256sum of the files we found stuff in from the clicked link and display it
+			self.target.SetPage(htmlcontent)
+			self.target.ScrollToAnchor("line%s" % linenumber)
+			self.target.Refresh(True)
+		elif href.startswith("#"):
+			anchor = href.split('#')[-1]
+			self.ScrollToAnchor(anchor)
+
+
+class BatFrame(wx.Frame):
+	def __init__(self, parent, title, config):
+		self.title = title
+		wx.Frame.__init__(self, parent, title=self.title, size=(1280,768))
+		self.origconfig = copy.copy(config)
+
+		## some defaults
+		self.datadir = ""
+		self.tarfile = None
+		self.timer = None
+		self.selectedfile = None
+		self.htmldir = None
+
+		## we start in "simple" mode
+		self.advanced = False
+		self.advancedunpacked = False
+		self.batconfig = ["Advanced mode"]
+		self.batconfigstate = []
+
+		## initial values of filters
+		self.filterconfigstate = []
+		self.filters = []
+		self.filterconfig = [(["audio", "mp3", "ogg"], "Audio files"),
+                                     (["duplicate"], "Duplicate files"),
+                                     (["emptydir"], "Empty directories (after filters have been applied)"),
+                                     (["empty"], "Empty files"),
+                                     (["png", "bmp", "jpg", "gif", "graphics"], "Graphics files"),
+                                     (["pdf"], "PDF files"),
+                                     (["resource"], "Resource files"),
+                                     (["symlink"], "Symbolic links"),
+                                     (["text", "xml"], "Text files"),
+                                     (["video", "mp4"], "Video files"),]
+
+
+		## add a few menus. This is heavily inspired by the tutorial code from wxPython
+		menuBar = wx.MenuBar()
+
+		filemenu = wx.Menu()
+		menuOpen = filemenu.Append(wx.ID_OPEN,"&Open"," Open a scan archive")
+
+		filemenu.AppendSeparator()
+		menuExit = filemenu.Append(wx.ID_EXIT,"E&xit"," Terminate the program")
+		menuBar.Append(filemenu,"&File")
+
+		configmenu = wx.Menu()
+		menuConfigGeneral = configmenu.Append(wx.ID_ANY, "&General Configuration"," General configuration")
+		menuConfigFilter = configmenu.Append(wx.ID_ANY, "&Filter Configuration"," Configure filters")
+		configmenu.AppendSeparator()
+		menuBar.Append(configmenu,"&Configuration")
+
+		menuScanOpenConfiguration = configmenu.Append(wx.ID_ANY,"Open &Configuration File"," Open a BAT configuration file")
+
+		helpmenu = wx.Menu()
+		#menuHelp = helpmenu.Append(wx.ID_HELP_CONTENTS, "&Contents"," Help")
+		#menuAbout = helpmenu.Append(wx.ID_ABOUT, "&About"," Information about this program")
+		#menuBar.Append(helpmenu,"&Help")
+
+		self.SetMenuBar(menuBar)
+		#self.Bind(wx.EVT_MENU, self.onAbout, menuAbout)
+		self.Bind(wx.EVT_MENU, self.onExit, menuExit)
+		self.Bind(wx.EVT_MENU, self.onOpen, menuOpen)
+		#self.Bind(wx.EVT_MENU, self.onHelp, menuHelp)
+		self.Bind(wx.EVT_MENU, self.onConfig, menuConfigGeneral)
+		self.Bind(wx.EVT_MENU, self.onFilterConfig, menuConfigFilter)
+		self.Bind(wx.EVT_MENU, self.onScanOpenConfigFile, menuScanOpenConfiguration)
+
+		## next we should have a toolbar
+		battoolbar = self.CreateToolBar()
+
+		## we create a sizer to position the elements
+		## one row, two columns
+		## column 0: file tree
+		## column 1: display of all kinds of data
+		## column 1 should be allowed to grow
+		flexgrid = wx.FlexGridSizer(1, 2)
+		flexgrid.AddGrowableCol(0, 3)
+		flexgrid.AddGrowableCol(1, 15)
+		flexgrid.AddGrowableRow(0)
+		flexgrid.SetHGap(10)
+		self.SetSizerAndFit(flexgrid)
+
+		## Then we have two panels
+		## The left panel is to show the file tree
+		self.tree = wx.TreeCtrl(self, style=wx.TR_DEFAULT_STYLE|wx.TR_LINES_AT_ROOT|wx.TR_HAS_BUTTONS|wx.TR_FULL_ROW_HIGHLIGHT|wx.ALWAYS_SHOW_SB)
+		flexgrid.Add(self.tree, flag=wx.EXPAND)
+		self.tree.Bind(wx.EVT_TREE_SEL_CHANGED, self.treeHasChanged)
+		
+		## The right panel is to show all the other information. As soon as one of the items in the tree is selected
+		## that is not a directory we change the information in all the panels.
+		#notebookpanel = wx.Notebook(self)
+		#self.notebookpanel = wx.aui.AuiNotebook(self)
+		self.notebookpanel = wx.lib.agw.flatnotebook.FlatNotebook(self, agwStyle=wx.lib.agw.flatnotebook.FNB_NO_X_BUTTON)
+		flexgrid.Add(self.notebookpanel, flag=wx.EXPAND)
+
+		## There is an overview tab containing a window with some information, initially showing help text
+		#overviewtab = wx.NotebookPage(notebookpanel)
+		self.overviewwindow = wx.html.HtmlWindow(self.notebookpanel)
+		self.notebookpanel.AddPage(self.overviewwindow, "Overview")
+		self.overviewwindow.SetPage(helphtml)
+
+		## We have a tab for detailed information about matches
+		matchestab = wx.SplitterWindow(self.notebookpanel)
+		self.notebookpanel.AddPage(matchestab, "Unique strings")
+		## One window to display corresponding source code, initially empty
+		self.matchesbrowser = wx.html.HtmlWindow(matchestab)
+		self.matchesbrowser.SetPage("<html></html")
+		## One window to display the matches, initially empty
+		self.matcheswindow = BATHtmlWindow(matchestab, self.matchesbrowser, self.htmldir)
+		self.matcheswindow.SetPage("<html></html>")
+		matchestab.SplitVertically(self.matcheswindow, self.matchesbrowser)
+		matchestab.SetSashGravity(0.5)
+
+		self.assignedwindow = wx.html.HtmlWindow(self.notebookpanel)
+		self.notebookpanel.AddPage(self.assignedwindow, "Assigned strings")
+		self.assignedwindow.SetPage("<html></html>")
+
+		self.unmatchedwindow = wx.html.HtmlWindow(self.notebookpanel)
+		self.notebookpanel.AddPage(self.unmatchedwindow, "Unmatched strings")
+		self.unmatchedwindow.SetPage("<html></html>")
+
+		## A tab for detailed information about function name matches
+		namematchestab = wx.SplitterWindow(self.notebookpanel)
+		self.notebookpanel.AddPage(namematchestab, "Variabe names")
+		## One window to display corresponding source code, initially empty
+		self.namematchesbrowser = wx.html.HtmlWindow(namematchestab)
+		self.namematchesbrowser.SetPage("<html></html")
+
+		## One window to display the matches, initially empty
+		self.nameswindow = BATHtmlWindow(namematchestab, self.namematchesbrowser, self.htmldir)
+		self.nameswindow.SetPage("<html></html>")
+		namematchestab.SplitVertically(self.nameswindow, self.namematchesbrowser)
+		namematchestab.SetSashGravity(0.5)
+
+		## A tab for detailed information about function name matches
+		functionmatchestab = wx.SplitterWindow(self.notebookpanel)
+		self.notebookpanel.AddPage(functionmatchestab, "Function names")
+		## One window to display corresponding source code, initially empty
+		self.functionmatchesbrowser = wx.html.HtmlWindow(functionmatchestab)
+		self.functionmatchesbrowser.SetPage("<html></html")
+
+		## One window to display the matches, initially empty
+		self.functionmatcheswindow = BATHtmlWindow(functionmatchestab, self.functionmatchesbrowser, self.htmldir)
+		self.functionmatcheswindow.SetPage("<html></html>")
+		functionmatchestab.SplitVertically(self.functionmatcheswindow, self.functionmatchesbrowser)
+		functionmatchestab.SetSashGravity(0.5)
+
+		self.elfwindow = wx.html.HtmlWindow(self.notebookpanel)
+		self.notebookpanel.AddPage(self.elfwindow, "ELF analysis")
+		self.elfwindow.SetPage("<html></html>")
+
+		## We have a tab for visual information and hexdumps about a file, only in advanced mode
+		if self.advanced:
+			self.initAlternateViewtab()
+
+		'''
+		## We have a tab for visual information and hexdumps about a file
+		self.textpicturetab = wx.SplitterWindow(self.notebookpanel)
+		self.textpicturetab.SetSashGravity(0.4)
+		self.notebookpanel.AddPage(self.textpicturetab, "Text/pictures")
+		if self.advanced:
+			self.notebookpanel.EnableTab(4,False)
+		else:
+			self.notebookpanel.EnableTab(3,False)
+
+		## with one textctrl on the right
+		plaintextStyle = wx.TextAttr()
+		plaintextStyle.SetFont(wx.FFont(10, family=wx.FONTFAMILY_TELETYPE))
+		self.plaintextDisplay = wx.TextCtrl(self.textpicturetab, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
+		self.plaintextDisplay.SetDefaultStyle(plaintextStyle)
+
+		## and pictures on the left
+		self.picturedisplay = wx.ScrolledWindow(self.textpicturetab)
+		displayvbox = wx.FlexGridSizer(2, 1)
+		displayvbox.AddGrowableRow(0,1)
+		displayvbox.AddGrowableRow(1,1)
+		displayvbox.SetVGap(5)
+		self.picturedisplay.SetSizerAndFit(displayvbox)
+
+		self.textpicturetab.SplitVertically(self.picturedisplay, self.plaintextDisplay)
+		self.textpicturetab.SetSashGravity(0.4)
+		'''
+
+		self.initConfig(self.origconfig)
+
+		self.Show(True)
+
+	def initConfig(self, config):
+		self.scanconfig = []
+		for s in config.sections():
+			if s == 'batconfig':
+				continue
+			elif s == 'viewer':
+				if config.has_option(s, 'htmldir'):
+					self.htmldir = config.get(s, 'htmldir')
+					self.matcheswindow.setHtmlDir(self.htmldir)
+					self.functionmatcheswindow.setHtmlDir(self.htmldir)
+			else:
+				try:
+					## process each section. We need: section name, description, enabled
+					description = config.get(s, 'description')
+					enabled = config.get(s, 'enabled')
+					self.scanconfig.append((s, description, enabled))
+				except:
+					pass
+		self.scanconfigstate = []
+		for s in self.scanconfig:
+			if s[2] == 'yes':
+				self.scanconfigstate.append(self.scanconfig.index(s))
+
+	def initAlternateViewtab(self):
+		self.alternateviewtab = wx.SplitterWindow(self.notebookpanel)
+		self.notebookpanel.InsertPage(4, self.alternateviewtab, "Alternate view", select=False)
+
+		## with one textctrl on the right
+		hexdumpStyle = wx.TextAttr()
+		hexdumpStyle.SetFont(wx.FFont(10, family=wx.FONTFAMILY_TELETYPE))
+		self.textCtrl = wx.TextCtrl(self.alternateviewtab, style=wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL)
+		self.textCtrl.SetDefaultStyle(hexdumpStyle)
+
+		## and pictures on the left
+		self.picturepanel = wx.ScrolledWindow(self.alternateviewtab)
+		vbox = wx.FlexGridSizer(2, 1)
+		vbox.AddGrowableRow(0,1)
+		vbox.AddGrowableRow(1,1)
+		vbox.SetVGap(5)
+		self.picturepanel.SetSizerAndFit(vbox)
+
+		self.histo2 = wx.EmptyBitmap(width=1, height=1)
+		self.histogram2 = wx.lib.statbmp.GenStaticBitmap(self.picturepanel, ID=-1, bitmap=self.histo2)
+		#self.histogram = wx.StaticBitmap(self.picturepanel, bitmap=histo2)
+		#self.histogram2 = wx.lib.statbmp.GenStaticBitmap(self.picturepanel, ID=-1, bitmap=histo2)
+		#self.histogram2.Bind(wx.EVT_LEFT_DOWN, self.onHexdumpClick)
+		vbox.Add(self.histogram2, flag=wx.EXPAND)
+		#vbox.Add(self.histogram, flag=wx.EXPAND)
+		self.picturepanel.SetScrollbars(20, 20, 10, 10)
+		self.alternateviewtab.SplitVertically(self.picturepanel, self.textCtrl)
+		self.alternateviewtab.SetSashGravity(0.4)
+
+	def onHexdumpClick(self, event):
+		## get a rough approximation of where to scroll to in the hexdump file
+		(xpos,ypos) = event.GetPositionTuple()
+		pos = ((xpos + ypos * 512)/16) * 79
+		self.textCtrl.SetInsertionPoint(pos)
+
+	def textctrlupdate(self):
+		## in case the file had already been changed, and CallLater() had not yet run we would
+		## get an error. It is actually better to make sure CallLater() is aborted on time
+		if self.data == '':
+			return
+		offset = 1000000
+		self.textCtrl.Freeze()
+		self.textCtrl.AppendText(self.data[offset:])
+
+		unpackedfiles = []
+		for i in self.unpackreports[self.selectedfile]['scans']:
+			unpackedfiles.append((i['offset'], i['scanname'], i['size']))
+
+		## work our way backwards, so we don't have to remember to do funky math with offsets
+		unpackedfiles = sorted(unpackedfiles, reverse=True)
+		for i in unpackedfiles:
+			if len(self.data) < 78:
+				continue
+			pos = (i[0]/16) * 79 + 78
+			labelStyle = wx.TextAttr()
+			labelStyle.SetFlags(wx.TEXT_ATTR_TEXT_COLOUR)
+			labelStyle.SetTextColour('RED')
+			self.textCtrl.SetInsertionPoint(pos)
+			insertionText = " %s at 0x%08x" % (i[1], i[0])
+			self.textCtrl.WriteText(insertionText)
+			self.textCtrl.SetStyle(pos, pos + len(insertionText), style=labelStyle)
+		self.textCtrl.SetInsertionPoint(0)
+		self.textCtrl.Thaw()
+
+	def treeHasChanged(self, event):
+		selected = self.tree.GetItemData(event.GetItem()).GetData()
+		if selected == self.selectedfile:
+			return
+		self.selectedfile = selected
+
+		## if there are any times, stop and destroy them
+		if self.timer != None:
+			self.timer.Stop()
+		## first clean all the windows
+		self.cleanWindows()
+		if self.advanced:
+			## clean the pictures
+			self.histo2 = wx.EmptyBitmap(width=1, height=1)
+			self.histogram2.SetBitmap(bitmap=self.histo2)
+			self.histogram2.Refresh(True)
+			self.picturepanel.FitInside()
+			## clean the hexdump
+			self.textCtrl.Clear()
+			## enable tabs again
+			self.notebookpanel.EnableTab(4,True)
+
+		#self.notebookpanel.EnableTab(1,True)
+
+		## if / is selected we print the help page again
+		if self.selectedfile == None:
+			self.overviewwindow.SetPage(helphtml)
+
+		if self.unpackreports.has_key(self.selectedfile):
+			sha256sum = ''
+			tag = ''
+			if self.unpackreports[self.selectedfile].has_key('checksum'):
+				sha256sum = self.unpackreports[self.selectedfile]['checksum']
+			else:
+				## no checksum, so it is a 'special' file
+				name = self.unpackreports[self.selectedfile]['name']
+				path = self.unpackreports[self.selectedfile]['path']
+				realpath = self.unpackreports[self.selectedfile]['realpath']
+				magic = self.unpackreports[self.selectedfile]['magic']
+				size = 0
+				overviewhtml='''
+
+<html>
+<body>
+<h2>Overview</h2>
+<table>
+<tr><td><b>Name</b></td><td>%s</td></tr>
+<tr><td><b>Path</b></td><td>%s</td></tr>
+<tr><td><b>Absolute path</b></td><td>%s</td></tr>
+<tr><td><b>Size</b></td><td>%s bytes</td></tr>
+<tr><td><b>File type</b></td><td>%s</td></tr>
+</table>
+</body>
+</html>
+'''
+				self.overviewwindow.SetPage(overviewhtml % (name, path, realpath, size, magic))
+
+			if os.path.exists(os.path.join(self.reportsdir, "%s-guireport.html.gz" % sha256sum)):
+				overviewhtmlfile = gzip.open(os.path.join(self.reportsdir, "%s-guireport.html.gz" % sha256sum), 'r')
+				overviewhtml = overviewhtmlfile.read()
+				overviewhtmlfile.close()
+				overviewhtml = overviewhtml.replace('REPLACEME', self.imagesdir)
+				self.overviewwindow.SetPage(overviewhtml)
+
+			if self.unpackreports[self.selectedfile].has_key('tags'):
+				if 'graphics' in self.unpackreports[self.selectedfile]['tags']:
+					if self.advanced:
+						self.notebookpanel.EnableTab(2,False)
+					tag = 'graphics'
+				if 'text' in self.unpackreports[self.selectedfile]['tags']:
+					if self.advanced:
+						self.notebookpanel.EnableTab(2,False)
+					tag = 'text'
+			if os.path.exists(os.path.join(self.reportsdir, "%s-assigned.html.gz" % sha256sum)):
+				assignedhtmlfile = gzip.open(os.path.join(self.reportsdir, "%s-assigned.html.gz" % sha256sum), 'r')
+				assignedhtml = assignedhtmlfile.read()
+				assignedhtmlfile.close()
+				self.assignedwindow.SetPage(assignedhtml)
+			if os.path.exists(os.path.join(self.reportsdir, "%s-unmatched.html.gz" % sha256sum)):
+				unmatchedhtmlfile = gzip.open(os.path.join(self.reportsdir, "%s-unmatched.html.gz" % sha256sum), 'r')
+				unmatchedhtml = unmatchedhtmlfile.read()
+				unmatchedhtmlfile.close()
+				self.unmatchedwindow.SetPage(unmatchedhtml)
+			if os.path.exists(os.path.join(self.reportsdir, "%s-names.html.gz" % sha256sum)):
+				nameshtmlfile = gzip.open(os.path.join(self.reportsdir, "%s-names.html.gz" % sha256sum), 'r')
+				nameshtml = nameshtmlfile.read()
+				nameshtmlfile.close()
+				self.nameswindow.SetPage(nameshtml)
+			if os.path.exists(os.path.join(self.reportsdir, "%s-functionnames.html.gz" % sha256sum)):
+				functionnameshtmlfile = gzip.open(os.path.join(self.reportsdir, "%s-functionnames.html.gz" % sha256sum), 'r')
+				functionnameshtml = functionnameshtmlfile.read()
+				functionnameshtmlfile.close()
+				self.functionmatcheswindow.SetPage(functionnameshtml)
+			if os.path.exists(os.path.join(self.reportsdir, "%s-elfreport.html.gz" % sha256sum)):
+				elfhtmlfile = gzip.open(os.path.join(self.reportsdir, "%s-elfreport.html.gz" % sha256sum), 'r')
+				elfhtml = elfhtmlfile.read()
+				elfhtmlfile.close()
+				elfhtml = elfhtml.replace('REPLACEME', self.imagesdir)
+				self.elfwindow.SetPage(elfhtml)
+
+			if os.path.exists(os.path.join(self.reportsdir, "%s-unique.html.gz" % sha256sum)):
+				uniquehtmlfile = gzip.open(os.path.join(self.reportsdir, "%s-unique.html.gz" % sha256sum), 'r')
+				uniquehtml = uniquehtmlfile.read()
+				uniquehtmlfile.close()
+				self.matcheswindow.SetPage(uniquehtml)
+
+			if sha256sum != '' and tag not in ['graphics', 'text', 'compressed', 'audio', 'video', 'resource']:
+				if self.advanced:
+					try:
+						os.stat(os.path.join(self.reportsdir, "%s-hexdump.gz" % (sha256sum,)))
+						datafile = gzip.open(os.path.join(self.reportsdir, '%s-hexdump.gz' % (sha256sum,)))
+						hexdump = datafile.read()
+						datafile.close()
+						self.data = hexdump
+						self.datalen = len(self.data)
+						## if file is small enough load it at once
+						if size > 1000000:
+							self.textCtrl.WriteText(self.data[:1000000])
+							self.timer = wx.CallLater(2000, self.textctrlupdate)
+						else:
+							self.textCtrl.WriteText(self.data)
+							self.timer = wx.CallLater(0, self.textctrlupdate)
+						self.textCtrl.SetInsertionPoint(0)
+					except Exception, e:
+						pass
+					try:
+						os.stat(os.path.join(self.imagesdir, "%s.png" % (sha256sum,)))
+						self.histo2 = wx.Image(os.path.join(self.imagesdir, '%s.png' % (sha256sum,)), wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+		
+						self.histogram2.SetBitmap(bitmap=self.histo2)
+						self.histogram2.Bind(wx.EVT_LEFT_DOWN, self.onHexdumpClick)
+						self.histogram2.Refresh(True)
+						self.picturepanel.FitInside()
+					except Exception, e:
+						pass
+
+	def initTree(self, tree, tmpdir):
+		if tmpdir == None:
+			return
+		tree.DeleteAllItems()
+		if self.selectedfile == None:
+			self.cleanWindows()
+
+		## construct a tree from a pickle
+		if tmpdir.endswith('/'):
+			tmpdir = tmpdir[:-1]
+
+		rootnode = tree.AddRoot('/')
+		nodes = {}
+
+		dirlist = list(set(map(lambda x: os.path.dirname(x), self.unpackreports.keys())))
+
+		## make sure that we have all directories
+		for d in dirlist:
+			if os.path.dirname(d) in dirlist:
+				continue
+			else:
+				dirlist.append(os.path.dirname(d))
+		dirlist.sort()
+
+		for d in dirlist:
+			if d == "":
+				continue
+			else:
+				if d.startswith('/'):
+					d = d[1:]
+				parent = os.path.dirname(d)
+				if parent == "":
+					linktext = u"%s  \u24b9" % d
+					dirnode = tree.AppendItem(rootnode, linktext, data=wx.TreeItemData(d))
+					nodes[d] = dirnode
+				else:
+					## length of parent, plus 1 for trailing slash
+					parentlen = len(parent) + 1
+
+					## check if the parent directory is actually there. If not, we have
+					## a problem. Should not occur.
+					if not nodes.has_key(parent):
+						continue
+					#linktext = u"%s \u1f4c1" % j
+					linktext = u"%s  \u24b9" % d[parentlen:]
+					dirnode = tree.AppendItem(nodes[parent], linktext, data=wx.TreeItemData(os.path.normpath(d)))
+					nodes[d] = dirnode
+
+		filelist = self.unpackreports.keys()
+		filelist.sort()
+
+		for j in filelist:
+			if j.startswith('/'):
+				j = j[1:]
+			parent = os.path.dirname(j)
+			## length of parent, plus 1 for trailing slash
+			parentlen = len(parent) + 1
+			ignore = False
+			if parent == "":
+				linktext = j
+			else:
+				linktext = j[parentlen:]
+			tagsentities = {'text': u'\u24c9', 'graphics': u'\u24bc', 'compressed': u'\u24b8', 'resource': u'\u24c7', 'static': u'\u24c8', 'dalvik': u'\u24b6', 'ranking': u'\u272a', 'linuxkernel': u'\u24c1', 'duplicate': u'\u229c'}
+
+			if self.unpackreports[j].has_key('tags'):
+				for t in self.unpackreports[j]['tags']:
+					if list(set(self.unpackreports[j]['tags']).intersection(set(self.filters))) != []:
+						ignore = True
+						continue
+					tagappend = u""
+					if tagsentities.has_key(t):
+						tagappend = tagsentities[t]
+					if tagappend != u"":
+						for i in ['utf-8','ascii','latin-1','euc_jp', 'euc_jis_2004', 'jisx0213', 'iso2022_jp', 'iso2022_jp_1', 'iso2022_jp_2', 'iso2022_jp_2004', 'iso2022_jp_3', 'iso2022_jp_ext', 'iso2022_kr','shift_jis','shift_jis_2004','shift_jisx0213']:
+							try:
+								linktext = linktext.decode(i) + u"  %s" % tagappend
+								break
+							except:
+								pass
+				if "symlink" in self.unpackreports[j]['tags']:
+					if "symlink" in self.filters:
+						ignore = True
+						continue
+					## if it is a link, then add the value of where the link points to
+					## to give a visual clue to people
+					## example: "symbolic link to `../../bin/busybox'"
+					linkname = self.unpackreports[j]['magic'][:-1].rsplit("symbolic link to `", 1)[-1]
+					linktext = u"%s \u2192 %s" % (linktext, linkname)
+			if self.unpackreports[j].has_key('size'):
+				if self.unpackreports[j]['size'] == 0:
+					## if files are empty mark them as empty
+					if "empty" in self.filters:
+						ignore = True
+					else:
+						linktext = u"%s  \u2205" % linktext
+			if ignore:
+				continue
+			if parent == "":
+				leafnode = tree.AppendItem(rootnode, linktext, data=wx.TreeItemData(j))
+				nodes[j] = leafnode
+			else:
+				if not nodes.has_key(parent):
+					continue
+				else:
+					leafnode = tree.AppendItem(nodes[parent], text=linktext, data=wx.TreeItemData(os.path.normpath(j)))
+					nodes[j] = leafnode
+
+		## Remove empty, or seemingly empty, directories from the
+		## view to declutter the interface.
+		## We keep traversing the tree until we know for sure that
+		## there are only directories with visible items left. There
+		## is probably a more efficient way, but this is still fast.
+		if "emptydir" in self.filters:
+			stillempty = True
+			while stillempty:
+				stillempty = False
+				for i in dirlist:
+					if nodes.has_key(i):
+						if not tree.ItemHasChildren(nodes[i]):
+							tree.Delete(nodes[i])
+							del nodes[i]
+							stillempty = True
+		tree.SortChildren(rootnode)
+		for n in nodes:
+			tree.SortChildren(nodes[n])
+		tree.Refresh()
+		tree.ExpandAll()
+
+		if self.selectedfile != None:
+			## reselect the already selected item and scroll to the right place
+			if nodes.has_key(self.selectedfile):
+				tree.SelectItem(nodes[self.selectedfile])
+				tree.ScrollTo(nodes[self.selectedfile])
+			else:
+				## TODO: refactor this
+				## first clean all the windows
+				self.cleanWindows()
+				if self.advanced:
+					## clean the pictures
+					self.histo2 = wx.EmptyBitmap(width=1, height=1)
+					self.histogram2.SetBitmap(bitmap=self.histo2)
+					self.histogram2.Refresh(True)
+					self.picturepanel.FitInside()
+					## clean the hexdump
+					self.textCtrl.Clear()
+
+				self.selectedfile = None
+
+	def cleanWindows(self):
+		self.overviewwindow.SetPage(helphtml)
+		self.matcheswindow.SetPage('<html></html>')
+		self.matchesbrowser.SetPage("<html></html>")
+		self.unmatchedwindow.SetPage("<html></html>")
+		self.assignedwindow.SetPage("<html></html>")
+		self.nameswindow.SetPage("<html></html>")
+		self.functionmatcheswindow.SetPage('<html></html>')
+		self.elfwindow.SetPage("<html></html>")
+
+	## based on configuration we enable/disable certain features
+	def redrawGUI(self):
+		if not 0 in self.batconfigstate and self.advanced == True:
+			self.advanced = False
+			self.notebookpanel.RemovePage(5)
+			self.SetTitle(self.title)
+		if 0 in self.batconfigstate and self.advanced == False:
+			self.advanced = True
+			if self.advancedunpacked == False and self.tarfile != None:
+				try:
+					tar = tarfile.open(self.tarfile, 'r:gz')
+					members = []
+					## only unpack certain files and directories
+					members = members + filter(lambda x: x.name.startswith('images') and len(os.path.basename(x.name)) == 68, self.tarmembers)
+					members = members + filter(lambda x: x.name.startswith('reports') and x.name.endswith('-hexdump.gz'), self.tarmembers)
+					tar.extractall(self.tmpdir, members)
+					tar.close()
+					self.advancedunpacked = True
+				except Exception, e:
+					pass
+			self.initAlternateViewtab()
+			self.SetTitle(self.title + " (advanced mode)")
+		self.Refresh()
+
+	## show a dialog window with some information about BAT
+	def onAbout(self,e):
+		# A message dialog box with an OK button. wx.OK is a standard ID in wxWidgets.
+		dlg = wx.MessageDialog( self, "Binary Analysis Tool Viewer", "About the Binary Analysis Tool Viewer", wx.OK)
+		dlg.ShowModal()
+		dlg.Destroy()
+
+
+	def onFilterConfig(self,e):
+		dlg = wx.MultiChoiceDialog(self, "Choose file types that should be ignored in the file tree.\nChosen file types will NOT be displayed.", "Binary Analysis Tool file type filter", map(lambda x: x[1], self.filterconfig))
+		dlg.SetSelections(self.filterconfigstate)
+		if dlg.ShowModal() == wx.ID_OK:
+			self.filterconfigstate = dlg.GetSelections()
+			self.filters = reduce(lambda x, y: x + y, map(lambda x: self.filterconfig[x][0], self.filterconfigstate), [])
+			if self.datadir != "":
+				self.initTree(self.tree, self.datadir)
+		dlg.Destroy()
+
+	def onConfig(self,e):
+		dlg = wx.MultiChoiceDialog(self, "Binary Analysis Tool configurator", "", self.batconfig)
+		dlg.SetSelections(self.batconfigstate)
+		if dlg.ShowModal() == wx.ID_OK:
+			self.batconfigstate = dlg.GetSelections()
+			self.redrawGUI()
+		dlg.Destroy()
+
+	def onScanConfig(self,e):
+		dlg = wx.MultiChoiceDialog(self, "Binary Analysis Tool scan configurator", "", map(lambda x: x[1], self.scanconfig))
+		## we don't get a maximize_box
+		## see http://stackoverflow.com/questions/8579189/wxwidgets-dialog-doesnt-get-a-maximize-box
+		#dlg.SetExtraStyle(wx.MAXIMIZE_BOX)
+		#dlg.Refresh()
+		dlg.SetSelections(self.scanconfigstate)
+		if dlg.ShowModal() == wx.ID_OK:
+			self.scanconfigstate = dlg.GetSelections()
+		dlg.Destroy()
+
+	def onScanOpenConfigFile(self,e):
+		dlg = wx.FileDialog(self, 'Open BAT configuration file', style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+		if dlg.ShowModal() == wx.ID_OK:
+			config = ConfigParser.ConfigParser()
+			try:
+				configfile = open(dlg.GetPath(), 'r')
+				config.readfp(configfile)
+				self.origconfig = copy.copy(config)
+				self.initConfig(self.origconfig)
+			except Exception, e:
+				errordiag = wx.MessageDialog(None, 'Not a valid configuration file', 'Error', wx.OK | wx.ICON_ERROR)
+				errordiag.ShowModal()
+		dlg.Destroy()
+
+	def onExit(self,e):
+		self.Close(True)
+
+	## TODO: create help
+	def onHelp(self,e):
+		print e.GetString()
+		return
+
+	def onOpen(self,e):
+		dlg = wx.FileDialog(self, 'Open BAT results', style=wx.FD_OPEN|wx.FD_FILE_MUST_EXIST)
+		if dlg.ShowModal() == wx.ID_OK:
+			## should be an archive with inside:
+			## * scandata.pickle
+			## * data directory
+			## * images directory (optional)
+			self.tmpdir = tempfile.mkdtemp()
+			try:
+				self.tarfile = dlg.GetPath()
+				tar = tarfile.open(self.tarfile, 'r:gz')
+				self.tarmembers = tar.getmembers()
+				members = []
+				for i in ['scandata.pickle']:
+					members = members + filter(lambda x: x.name.startswith(i), self.tarmembers)
+				## If we are not in advanced mode, there is no need to unpack everything. The hexdump
+				## files and "TV static" pictures can be quite big, so don't unpack them when not needed.
+				if not self.advanced:
+					members = members + filter(lambda x: x.name.startswith('reports') and x.name.endswith('unique.html.gz'), self.tarmembers)
+					members = members + filter(lambda x: x.name.startswith('reports') and x.name.endswith('unmatched.html.gz'), self.tarmembers)
+					members = members + filter(lambda x: x.name.startswith('reports') and x.name.endswith('assigned.html.gz'), self.tarmembers)
+					members = members + filter(lambda x: x.name.startswith('reports') and x.name.endswith('guireport.html.gz'), self.tarmembers)
+					members = members + filter(lambda x: x.name.startswith('reports') and x.name.endswith('elfreport.html.gz'), self.tarmembers)
+					members = members + filter(lambda x: x.name.startswith('reports') and x.name.endswith('names.html.gz'), self.tarmembers)
+					members = members + filter(lambda x: x.name.startswith('images') and len(os.path.basename(x.name)) != 68, self.tarmembers)
+				else:
+					members = members + filter(lambda x: x.name.startswith('reports'), self.tarmembers)
+					members = members + filter(lambda x: x.name.startswith('images'), self.tarmembers)
+					self.advancedunpacked = True
+				tar.extractall(self.tmpdir, members)
+				tar.close()
+			except Exception, e:
+				os.rmdir(self.tmpdir)
+				return
+			self.datadir = os.path.join(self.tmpdir, "data")
+			self.imagesdir = os.path.join(self.tmpdir, "images")
+			self.reportsdir = os.path.join(self.tmpdir, "reports")
+			picklefile = open(os.path.join(self.tmpdir, "scandata.pickle") , 'rb')
+			self.unpackreports = cPickle.load(picklefile)
+			picklefile.close()
+			self.selectedfile = None
+			self.initTree(self.tree, self.datadir)
+
+def main(argv):
+	config = ConfigParser.ConfigParser()
+	parser = OptionParser()
+	parser.add_option("-c", "--config", action="store", dest="cfg", help="path to configuration file", metavar="FILE")
+	(options, args) = parser.parse_args()
+
+	if options.cfg != None:
+		try:
+			configfile = open(options.cfg, 'r')
+			config.readfp(configfile)
+		except:
+			print >>sys.stderr, "Need configuration file"
+			sys.exit(1)
+
+	app = wx.App(False)  # Create a new app, don't redirect stdout/stderr to a window.
+	frame = BatFrame(None, "Binary Analysis Tool", config) # A Frame is a top-level window.
+	frame.Show(True)     # Show the frame.
+	app.MainLoop()
+
+if __name__ == "__main__":
+	main(sys.argv)

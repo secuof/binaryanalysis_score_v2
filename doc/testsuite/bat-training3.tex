@@ -1,0 +1,344 @@
+\documentclass[11pt]{beamer}
+
+\usepackage{url}
+\usepackage{tikz}
+%\author{Armijn Hemel}
+\title{Using the Binary Analysis Tool - part 3}
+\date{}
+
+\begin{document}
+
+\setlength{\parskip}{4pt}
+
+\frame{\titlepage}
+
+\frame{
+\frametitle{Subjects}
+In this course you will learn:
+
+\begin{itemize}
+\item about the scan order in the Binary Analysis Tool
+\item to configure the Binary Analysis Tool
+\end{itemize}
+}
+
+\frame{
+\frametitle{Scan order in the Binary Analysis Tool}
+
+\begin{enumerate}
+\item the binary is read and file type specific identifiers (from a hardcoded list) are searched for in the binary
+\item prerun scans are run to tag files to filter out specific file types later
+\item unpacking scans are run to unpack any compressed files or file systems and scans 1 - 3 are run recursively
+\item file specific scans are run on all unpacked files
+\item aggregate scans are run that act on files in the complete context 
+\item post run scans are run for each individual file
+\item result files are packed into a result archive
+\end{enumerate}
+}
+
+\frame{
+\frametitle{Identifier search}
+The identifier search uses a hardcoded list of identifiers that indicate where a certain file starts or stops. Not all file types have identifiers, but most do.
+
+The locations of identifiers are passed to later scans, which can use this information to work in a more efficient way.
+}
+
+\frame{
+\frametitle{Prerun scans}
+Prerun scans are run to determine the type of the \textit{entire} file and to tag it. Tags can be used by later scans to ignore files: a scan to unpack a file system won't work on a graphics file or a text file.
+
+Some tags that can be set by prerun scans in the current version of BAT are:
+
+\begin{itemize}
+\item text
+\item binary
+\item graphics
+\item audio
+\item elf
+\item compressed
+\end{itemize}
+
+plus more to come.
+}
+
+\frame{
+\frametitle{Unpacking scans}
+Unpacking scans try to extract file systems and compressed files, sometimes from a larger binary blob, by ``carving'' it from a larger binary. Currently some 30 file systems, compressed files and media files are supported, including:
+
+\begin{itemize}
+\item file systems: Android sparse files, cramfs, ext2/ext3/ext4, ISO9660, JFFS2,
+Minix (specific variant of v1), SquashFS (many variants), romfs, YAFFS2 (specific variants)
+\item compressed files and executable formats: 7z, ar, ARJ, BASE64, BZIP2,
+compressed Flash, CAB, compress, CPIO, EXE (specific compression methods only),
+GZIP, InstallShield (old versions), LRZIP, LZIP, LZMA, LZO, RAR, RPM, serialized
+Java, TAR, UPX, XZ, ZIP
+\item media files: GIF, ICO, PDF, PNG
+\end{itemize}
+}
+
+\frame{
+\frametitle{File specific scans}
+
+\begin{itemize}
+\item dynamically linked libraries
+\item quick scan for identifiers of several programs (iptables, wireless-tools, etcetera)
+\item quick scan for identifiers of several licenses
+\item quick scan for identifiers of several collaborative software development sites (sourceforge, github, etcetera)
+\item Linux kernel version check
+\item BusyBox version check
+\item identifier extraction
+\item \dots
+\end{itemize}
+}
+
+\frame{
+\frametitle{Aggregate scans}
+
+\begin{itemize}
+\item advanced string matching scan using information from a large database extracted from source code
+\item finding duplicate files the entire scanned archive
+\item checking correctness of declared dependencies in dynamically linked ELF files
+\item looking up version information and license information of found results, with optional version pruning
+\item generating reports of the results
+\item generating pictures of the results
+\end{itemize}
+}
+
+\frame{
+\frametitle{Postrun scans}
+Postrun scans are scans that don't modify the files (unpacking, or scanning files), but merely act on results of scans, for example:
+
+\begin{itemize}
+\item generating histograms of byte values inside a file
+\item generating graphical representations of a file
+\item generating hexdump representations of a file
+\end{itemize}
+}
+
+\frame{
+\frametitle{Configuring the Binary Analysis Tool}
+
+The Binary Analysis Tool is highly configurable and uses plugins. These plugins can be enabled and disabled via a configuration file.
+
+The configuration file is in Windows INI format and contains several parts:
+
+\begin{itemize}
+\item general configuration
+\item configuration directives for ``prerun'' scans
+\item configuration directives for ``unpack'' scans
+\item configuration directives for ``leaf'' scans
+\item configuration directives for ``aggregate'' scans
+\item configuration directives for ``postrun'' scans
+\end{itemize}
+
+The general configuration is mandatory, the other directives are optional.
+}
+
+\frame{
+\frametitle{General configuration}
+BAT is very configurable. The configuration file lists many options, with descriptions of what they do.
+
+The most important sections to get started quickly are related to:
+
+\begin{itemize}
+\item unpacking and multiprocessing
+\item database
+\item debugging
+\end{itemize}
+}
+
+\begin{frame}[fragile]
+\frametitle{General configuration: unpacking and multiprocessing}
+
+\begin{verbatim}
+[batconfig]
+multiprocessing = yes
+unpackdirectory     = /home/bat/tmp
+temporary_unpackdirectory = /ramdisk
+configdirectory     = /home/bat/configs
+\end{verbatim}
+
+\begin{itemize}
+\item \texttt{multiprocessing} is for using multiple threads. If this is not desirable it should be set to \texttt{no}
+\item \texttt{unpackdirectory}: set prefix of toplevel directory where data should be unpacked (default: \texttt{/tmp})
+\item \texttt{temporary\_unpackdirectory}: set prefix for some scans where temporary files should be created (default: default somewhere in the unpacking directory)
+\item \texttt{configdirectory}: path of directory that contain extra configuration files for plugins
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{General configuration: database}
+
+\begin{verbatim}
+postgresql_user     = bat
+postgresql_password = bat
+postgresql_db       = bat
+postgresql_port     = 5432
+postgresql_host     = 127.0.0.1
+#usedatabase         = no
+\end{verbatim}
+
+\begin{itemize}
+\item \texttt{postgresql\_user}: PostgreSQL user to use
+\item \texttt{postgresql\_password}: PostgreSQL password
+\item \texttt{postgresql\_db}: PostgreSQL database to use
+\item \texttt{postgresql\_port}: TCP port to use
+\item \texttt{postgresql\_host}: host to use
+\end{itemize}
+
+If everything runs on a local machine commenting \texttt{postgresql\_port} and \texttt{postgresql\_host} will force PostgreSQL to use the local socket.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{General configuration: debugging}
+There are two optional configurations related to debugging:
+
+\begin{verbatim}
+debug               = yes
+debugphases         = unpack:aggregate
+\end{verbatim}
+
+\begin{itemize}
+\item \texttt{debug}: disable multiprocessing and output debugging information on standard error
+\item \texttt{debugphases}: apply \texttt{debug} only to specific scanning phases
+\end{itemize}
+\end{frame}
+
+\frame{
+\frametitle{Mandatory scan configuration options}
+The configuration for each type of scan has a few mandatory options:
+
+\begin{itemize}
+\item \texttt{type} - \texttt{prerun}, \texttt{unpack}, \texttt{leaf}, \texttt{aggregate} or \texttt{postrun}
+\item \texttt{module} - Python module (including package) the scan can be found
+\item \texttt{method} - the method for the scan
+\item \texttt{enabled} - \texttt{yes} enables a scan, \texttt{no} disables a scan
+\end{itemize}
+}
+
+\frame{
+\frametitle{Optional scan configuration options (1)}
+
+\begin{itemize}
+\item \texttt{priority} - scan priority: a higher priority means it is run before scans with a lower priority.
+\item \texttt{noscan} - list of tags. Files that are tagged with any of these tags are ignored by this scan.
+\item \texttt{scanonly} - list of tags. Only files that are tagged with any of these tags will be scanned. If \texttt{noscan} is also set the intersection of the two will be scanned.
+\item \texttt{envvars} - colon separated list of environment variables that will be set in the scan
+\item \texttt{magic} - list of specific identifiers this scan is meant for
+\end{itemize}
+}
+
+\frame{
+\frametitle{Optional scan configuration options (2)}
+
+\begin{itemize}
+\item \texttt{description} - a human readable description of the scan
+\item \texttt{storetype}, \texttt{storetarget} and \texttt{storedir} - used for postrun scans and aggregate scans to describe which files to store in the output, where to store them and where to get them
+\item \texttt{cleanup} - used in postrun scans and aggregate scans to tell BAT to clean up any generated file. Used in combination with \texttt{storetype}, \texttt{storetarget} and \texttt{storedir}.
+\item \texttt{parallel} - used to indicate whether files should be scanned in parallel. Defaults to \texttt{yes}. If set to \texttt{no} no files will be scanned in parallel for scans of this type.
+\item \texttt{setup} - method for running setup code (checking directories, databases, and so on).
+\end{itemize}
+}
+
+\begin{frame}[fragile]
+\frametitle{Prerun scans configuration directive example}
+
+\begin{verbatim}
+[checkXML]
+type        = prerun
+module      = bat.prerun
+method      = searchXML
+priority    = 2
+noscan      = elf:graphics:compressed:font:java:sqlite3:audio:video
+description = Check XML validity
+enabled     = yes
+\end{verbatim}
+
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Unpacking scans configuration directive example}
+
+The following example is for unpacking 7z compressed files. The priority is very low, only the identifier for \texttt{7z} is used, and a bunch of file types can safely be ignored by this scan:
+
+\begin{verbatim}
+[7z]
+type        = unpack
+module      = bat.fwunpack
+method      = searchUnpack7z
+priority    = 1
+magic       = 7z
+noscan      = text:xml:graphics:pdf:bz2:gzip:lrzip:
+              audio:video
+description = Unpack 7z compressed files
+enabled     = yes
+\end{verbatim}
+
+Note: \texttt{noscan} has been split for readability but is actually one line in the configuration file.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Aggregate scans configuration directive example}
+\begin{verbatim}
+[findlibs]
+type        = aggregate
+module      = bat.findlibs
+method      = findlibs
+envvars     = BAT_IMAGEDIR=/tmp/images:ELF_SVG=1
+noscan      = text:xml:graphics:pdf:audio:video:mp4
+enabled     = no
+storetarget = images
+storedir    = /tmp/images
+storetype   = -graph.png:-graph.svg
+description = Generate graphs of ELF binary linking
+cleanup     = yes
+priority    = 5
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Postrun scans configuration directive example}
+\begin{verbatim}
+[hexdump]
+type        = postrun
+module      = bat.generatehexdump
+method      = generateHexdump
+noscan      = text:xml:graphics:pdf:audio:video:mp4
+envvars     = BAT_REPORTDIR=/tmp/images:
+              BAT_IMAGE_MAXFILESIZE=100000000
+description = Create hexdump output of files
+enabled     = no
+storetarget = reports
+storedir    = /tmp/images
+storetype   = -hexdump.gz
+\end{verbatim}
+
+Note: \texttt{envvars} has been split for readability but is actually one line in the configuration file.
+\end{frame}
+
+\frame{
+\frametitle{Output the results of the Binary Analysis Tool}
+The raw output of the Binary Analysis Tool is written as a tar archive. The tar archive consists of:
+
+\begin{itemize}
+\item full directory tree of unpacked files (if any), if \texttt{outputlite} was specified (default: \texttt{no})
+\item gzip compressed Python pickles with the results of the scan
+\item (optional) pictures and reports with results of the scan
+\end{itemize}
+
+The results can be viewed using the Binary Analysis Tool result viewer.
+}
+
+\frame{
+\frametitle{Conclusion}
+In this course you have learned about:
+
+\begin{itemize}
+\item about the scan order in the Binary Analysis Tool
+\item to configure the Binary Analysis Tool
+\end{itemize}
+
+In the next course we will see how to view results of the Binary Analysis Tool using the special viewer program.
+}
+\end{document}

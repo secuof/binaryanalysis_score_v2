@@ -1,0 +1,3846 @@
+CHANGELOG HAS MOVED TO GITHUB
+
+2016-09-12:
+* move configs directory to bat-data directory, remove from the default BAT
+distribution
+* busybox.py: change the path to look for the BusyBox pickles
+* tagging BAT 27
+
+2016-09-11:
+* guireport.py/generatereports.py: don't keep results in memory unnecessarily
+but write them to a file earlier
+* prerun.py: tag compiled terminfo files
+* bat-scan.config: add configuration for compiled terminfo files
+* prerun.py: expand timezone file checks
+
+2016-09-09:
+* prerun.py: extra sanity checks to prevent unnecessary calls to xmllint
+* guireport.py: use more efficient string concat for duplicates. In case there
+are many duplicate entries (one test archive seen had 48000+ duplicate files)
+this can save a lot of time
+
+2016-09-08:
+* bruteforcescan.py: avoid building up temporary lists in postrun scans
+* bruteforcescan.py: avoid building up temporary lists when processing
+unpackscan results
+* generatejson.py: avoid building up temporary lists
+* prerun.py: extra sanity checks to prevent unnecessary calls to xmllint
+
+2016-09-07:
+* fwunpack.py: extra sanity check for broken GIF files
+* fwunpack.py: clean up in case tar barfs, but some data was unpacked
+* fwunpack.py: skip double entries in tar files
+* fwunpack.py: extra sanity check for base64 files
+* fwunpack.py: remove symbolic links to directories in squashfs unpacking in
+case it fails but some data was unpacked
+* fwunpack.py: fix for broken symbolic links in romfs files
+
+2016-08-30:
+* fwunpack.py: add many more sanity checks for GIF. Extract XMP data for GIF
+(not stored yet)
+
+2016-08-29:
+* busybox.py: make the BusyBox version number extraction a little bit more
+robust
+
+2016-08-24:
+* storeresult.py: add origin field for passwords
+* bruteforcescan.py: compare files to earlier runs of BAT and record TLSH
+distance
+* bruteforcescan.py: fix issue where in some cases files were not tagged
+properly
+* bruteforcescan.py: record exact matches to earlier BAT scans
+
+2016-08-23:
+* add storeresult.py to store results of a previous BAT run in the database
+
+2016-08-22:
+* bruteforcescan.py: add TLSH hashing for binary files, record more hashes in
+unpackreports (if available)
+* licenseversion.py: don't build up a list of variables and fields for every
+field/variable that is looked at. Instead, use a set() that is created once
+per method invocation.
+
+2016-08-21:
+* bruteforcecan.py: record some more statistics about the total run time of a
+scan
+* bruteforcescan.py: record for each blacklist entry by which scan it was set
+* fwunpack.py: rework cramfs sanity checks, add more sanity checks for cramfs
+* fwunpack.py: tag ext2/3/4 files
+* createdb.py/postgresql-*.sql: add "blacklist" database for known files that
+should be ignored (example: broken ext2 file systems that are present as test
+data in e2fsprogs)
+
+2016-08-19:
+* createdb.py: check entries in the manifest before unpacking an archive. This
+could save quite a bit of I/O in the case of big archives (Linux kernel,
+LibreOffice)
+* bruteforcescan.py: record some runtime statistics about each phase,
+individual aggregate scans and the total amount spent on scanning (except for
+writing the dump file)
+* remove jdserialize from bat-extratools-java
+* identifier.py: also record references to source code file names in the Linux
+kernel ending in .S
+
+2016-08-14:
+* fwunpack.py: add zisofs support to ISO9660 unpacking
+* docs: better document JSON
+
+2016-08-12:
+* bat-unyaffs: add another chunk/spare combination observed in the wild
+* bruteforcescan.py: make sure the top level element is tagged as such
+* fwunpack.py: correct offset for ext2 feature flags for sparse_super check
+
+2016-08-11:
+* fwunpack.py: ext2 superblock checks need different offsets if blocksize ==
+1024
+* fwunpack.py: TTF sanity checks to make sure that fonts that are not 4 byte
+aligned don't trigger a crash, plus that some checks don't read beyond where
+they should read in case multiple files are concatenated and some fonts are
+not 4 byte aligned.
+* bruteforcescan.py: reenable scanfirst, but not for lzma
+* bruteforcescan.py: import leaf scans only once per thread instead of once
+per file
+
+2016-08-10:
+* createdb.py: fixes for website entries in case there is no DOWNLOADURL file
+
+2016-08-09:
+* postgresql-table.sql: add column to archivealias table
+* createdb.py: use website column (if present) in 'processed' table and also
+record archive aliases
+
+2016-08-08:
+* fwunpack.py: use deque and popleft() for list of trailers in JPEG unpacking
+instead of a list
+* fwunpack.py: don't reopen files in compress checking
+* fwunpack.py: set maximum size for JPEG data (hardcoded to 100 MiB right now)
+* fwunpack.py: several sanity checks for JPEG checking
+* prerun.py: hardcode a few filters to avoid passing around large dicts of
+offsets
+* createdb.py: start processing website URLs for packages
+
+2016-08-07:
+* fwunpack.py: add some LZMA sanity checks
+* fwunpack.py: check for JPEG APP2 ICC profile, many extra JPEG sanity checks
+* fwunpack.py: don't keep opening files in compress unpacking
+* fwunpack.py: start reworking JPEG unpacking, add many more sanity checks
+
+2016-08-06:
+* bruteforcescan.py: pass database connection and cursor to postrun scans,
+rewrite to use a queue instead of a pool of processes
+* guireport.py/images.py/generatehexdump.py: use new interface for postrun
+scans
+* fwunpack.py: minimally check validity of ext2 superblock copies
+
+2016-08-05:
+* identifier.py: extract identifiers only from the .data section in a bFLT
+file
+* bat-scan/bruteforcescan.py: store some statistics about the underlying
+system in the result archive
+
+2016-08-04:
+* fwunpack.py: add support for Android sparse data image files (currently only
+system.new.dat and only if the right information is there)
+* bat-scan.config: add configuration for unpacking Android sparse data image
+files
+* fsmagic.py: add magic for ELF and BFLT
+* prerun.py: add verifier for BFLT
+* bat-scan.config: add configuration for tagging BFLT files
+
+2016-08-03:
+* identifier.py: work more on Dalvik unpacking (does not work yet)
+* bruteforcescan.py: remove leafScan, run all the leafScans directly after
+unpacking is done. For large firmwares this saves building a list of tasks in
+memory, and possibly resources are better utilized when the unpacker is
+running for a long time on a single task (LZMA unpacking for example), but
+there are files for which leafscans can already be run.
+* fwunpack.py: extra sanity check for lzop files
+
+2016-08-02:
+* identifier.py: work more on Dalvik unpacking (does not work yet)
+
+2016-08-01:
+* elfcheck.py: extra size check in case there are no section headers
+* findlibs.py: replace call to readelf
+* identifier.py: replace call to readelf
+
+2016-07-31:
+* elfcheck.py: add convenience method to extract information about a single
+section from the ELF file
+* identifier.py: replace call to readelf with own ELF parser (kernel symbols)
+* kernelanalysis.py: replace call to readelf with own ELF parser (module
+information). Support 2.4 kernel now too.
+* findlibs.py: replace several calls to readelf
+* findlibs.py: fixes for latest pydot (probably needs installation via pip,
+out of scope, so keep disabled for now)
+* prerun.py: remove call to readelf
+* busybox.py: remove call to readelf
+
+2016-07-30:
+* elfcheck.py: extract symbols from strtab section from non-stripped binaries
+* identifier.py: replace call to readelf with own ELF parser (symbols)
+
+2016-07-29:
+* javacheck.py: add more sanity checks
+* fwunpack.py: some more sanity checks for ar
+* elfcheck.py: correct offset
+
+2016-07-28:
+* elfcheck.py: return a list of SONAME values
+* fixduplicates.py: replace call to readelf
+* elfcheck.py: extract dynamic symbols (needs more work)
+
+2016-07-27:
+* elfcheck.py: split verification code into parser and verifier
+* elfcheck.py: extract more information (soname, rpath, needed libs)
+* checks.py: replace call to readelf with own ELF parser (dynamic libs)
+
+2016-07-26:
+* elfcheck.py: start working on own ELF parser
+* checks.py: replace call to readelf with own ELF parser (architecture)
+* createdb.py/postgresql-table.sql/postgresql-index.sql: add extra column in
+'processed'
+* fwunpack.py: extra sanity checks for Android sparse files
+
+2016-07-13:
+* fwunpack.py: remove external call to 'ar' in ar unpacking
+* fwunpack.py: proper cleanup for xar
+* prerun.py: remove verifyJavaClass
+* fwunpack.py: add Java class carver
+* bat-scan.config: add configuration for Java class carver
+* javacheck.py: pass offset to Java class checker, drop requirement that whole
+file has to be a class file
+* prerun.py: keep mapping of offset to keys
+
+2016-07-12:
+* fsmagic.py: add magic for ICS
+* fwunpack.py: add unpacker for ICS
+* bat-scan.config: add configuration for ICS
+* prerun.py: remove unused code in verifyJavaClass
+
+2016-07-11:
+* fwunpack.py: add unpacker for xar files
+* bat-scan.config: add configuration for xar unpacker
+
+2016-07-10:
+* fsmagic.py: add identifier for xar
+
+2016-07-09:
+* fwunpack.py: add known method for ar (includes deb, udeb, etc.)
+* fwunpack.py/fsmagic.py/bat-scan.config: lzo -> lzop
+* fsmagic.py: add identifiers for ID3 (1 and 2)
+* bruteforcescan.py/bat-scan: throw error if there are duplicate sections in
+the configuration
+
+2016-07-08:
+* fwunpack.py: rewite ISO9660 unpacking (ISO9660, Rock Ridge) and remove fuse
+and fuseiso dependencies. Still needs support for Joliet and zisofs to be on
+par with fuseiso though.
+
+2016-07-02:
+* fwunpack.py: add more ISO9660 checks
+* fwunpack.py: remove temporary files if ar unpacking failed but unpacked some
+data
+
+2016-07-01:
+* bruteforcescan.py: add modular configuration
+
+2016-06-30:
+* findlibs.py: extra sanity check for architecture
+* bruteforcescan.py: fix config parsing
+* bruteforcescan.py: add configdirectory option to implement modular
+configuration scanning
+
+2016-06-24:
+* bruteforcescan.py: fix database usage for leafscans
+* fwunpack.py: start on implementing length checks for ISO9660
+
+2016-06-23:
+* fwunpack.py: add version byte sanity check for ISO9660
+* bat-scan.config: remove obsolete config parameters
+* tagging BAT 26
+
+2016-06-22:
+* prerun.py/fwunpack.py: remove Ogg tagger and replace with Ogg unpacker
+* bat-scan.config: add configuration for Ogg unpacker, remove Ogg tagger
+configuration
+* bruteforcescan.py: fix leafscans debugging
+* bat-unyaffs: more sanity checks to prevent false positives when scanning DLL
+files
+* fwunpack.py: clean up after squashfs unpackers if they cannot unpack and
+some data was left behind (for example: symbolic links)
+* fwunpack.py: crude hack to ignore some false positives for base64 decoding
+
+2016-06-21:
+* prerun.py/fwunpack.py: remove OTF tagger and replace with OTF unpacker
+* bat-scan.config: add configuration for OTF unpacker, remove OTF tagger
+configuration
+* renamefiles.py: fix index, initramfs in kernels will not always be the first
+item in the 'scans' list
+* prerun.py: replace call to mkeot with own TTF verifier
+* setup.cfg: remove dependency on eot-utils
+* prerun.py/fwunpack.py: remove TTF tagger and replace with TTF unpacker
+* bat-scan.config: add configuration for TTF unpacker, remove TTF tagger
+configuration
+* fwunpack.py: better check BMP files
+* bruteforcescan.py: allow scans to indicate that certain other scans can
+ignore the blacklist
+* fwunpack.py: PNG can ignore the blacklist of TTF and OTF fonts (to unpack
+glyphs)
+
+2016-06-20:
+* prerun.py/fwunpack.py: remove WOFF tagger and replace with WOFF unpacker
+* bat-scan.config: add configuration for WOFF unpacker, remove WOFF tagger
+configuration
+* prerun.py: rework OTF verifier and no longer use external tools
+* setup.cfg: remove fonttools as dependency
+
+2016-06-19:
+* fwunpack.py: replace call to webpng with own PNG checking code
+* setup.cfg: remove dependency on gd-progs
+* fwunpack.py: replace call to icotool with own unpacking code for ico,
+since icotool would always spit out PNG files, not BMP files. BMP files still
+need to be corrected though.
+* prerun.py: more sanity checks for ICO files.
+
+2016-06-18:
+* prerun.py: remove verifyGraphics and verifyBMP
+* fwunpack.py: add searchUnpackBMP that also allows unpacking and carving BMP
+files
+* bat-scan.config: add configuration for new BMP code
+* fwunpack.py: tag romfs file systems, correct blacklist and size for romfs
+
+2016-06-16:
+* cveparser.py/createdb.config: open source first version of CVE parser
+* fwunpack.py: tag ar files
+* fwunpack.py: tag cramfs files, rework checks
+* fwunpack.py: tag cpio files, correct size reporting of cpio
+
+2016-06-15:
+* fwunpack.py: add known file method for PNG files (extension: .png). This is
+mostly to prevent bat-unyaffs running on many many PNG files.
+* bat-scan.config: add known file method configuration for PNG files
+* bruteforcescan.py: prevent files that are already known to be picked up by a
+known file method if they happen to have the matching extension (example:
+.png)
+* bruteforcescan.py: refactor code for readability
+* fwunpack.py: rework Java deserialization code. Remove jdeserialize as a
+dependency and instead just focus on carving/verifying known serialized Java
+files. Tag the serialized Java files as "javaserialized", instead of the data
+grabbed from these deserialized files.
+
+2016-06-14:
+* bat-unyaffs: extra sanity check to prevent crash and filling up the abrt log
+on Fedora systems
+* bat-minix: extra sanity check to prevent crash and filling up the abrt log
+on Fedora sytems
+* fsmagic.py: the PNG trailer has always the same length and CRC, so use it in
+the signature
+* fwunpack.py: extra sanity checks for PNG
+* fwunpack.py: use deque for slicing PNG trailers that are left instead of
+using lists. There are firmwares where (because of false positives and/or some
+missing information, like on some Android firmwares) there can be a few
+tenthousand PNG files, so the list of trailers can get really long. Unpacking
+these files can take quite a long time.
+
+2016-06-13:
+* fwunpack.py: introduce setup scan for tar/jffs2/compress temporary unpacking dir
+* bat-scan.config: fix defaults for lzma/jffs2/compress
+* bruteforcescan.py: introduce global temporary unpacking directory
+* identifier.py: replace DEX_TMPDIR with UNPACK_TEMPDIR
+* fwunpack.py: replace setup methods for lzma, compress, tar and jffs2 with
+environment lookup to UNPACK_TEMPDIR
+* bat-scan.config: rename tempdir to unpackdirectory, add
+temporary_unpackdirectory (to define UNPACK_TEMPDIR)
+
+2016-06-12:
+* bruteforcescan.py: introduce setup scans for unpack scans
+* fwunpack.py: introduce setup scan for lzma temporary unpacking dir
+* bat-scan.config: fix defaults for lzma
+
+2016-06-11:
+* bruteforcescan.py: make timeout for tasks configurable, default 1 month
+* bruteforcescan.py: make using the database optional, default: yes
+* bruteforcescan.py: implement scrubbing of the configuration file (example:
+database credentials)
+* bruteforcescan.py: fix dumping of marker search offset data
+* bruteforcescan.py: support 'compress' in top level configuration and use it
+in more places
+* bat-scan.config: add more defaults
+* docs: better document options in configuration file
+
+2016-06-10:
+* bruteforcescan.py: remove unnecessary code, better document flow
+
+2016-06-08:
+* bat-scan: add sanity check, don't scan if there are no tasks (saves running
+set up code)
+* bruteforcescan.py: remove some unused code, better document code
+
+2016-06-07:
+* remove SQLite support from scanning engine, use PostgreSQL only
+* bruteforcescan.py: simplify data structures for unpack scan processing
+* bat-scan.config: simplify configuration file, add some saner defaults
+
+2016-05-02:
+* identifier.py: fix return type for Linux kernel symbols
+* bruteforcescan.py: start on carving out data that could not be unpacked, but
+for which it is still useful for it to be carved out. Example: a Linux kernel
+image, or several Linux kernel images, or a bootloader, from a larger
+firmware.
+
+2016-04-28:
+* bat-sqlitetopostgresql.py: change hashconversion because now tlsh hashes are
+stored too
+
+2016-04-24:
+* createmanifests.py: more aggressively cache hashes
+
+2016-04-11:
+* identifier.py: try to identify source code file names in Linux kernel binary
+images
+* identifier.py: try to extract Linux kernel symbol names regardless whether
+or not certain database tables exist (leftover from before refactoring)
+* identifier.py: better deal with siutation of loops_per_jiffy appears
+multiple times in a Linux kernel binary image and it is the first in the list
+of kernel symbols (not preceded by a NULL character)
+
+2016-04-08:
+* prerun.py: extra sanity check for ELF files (ELF type)
+
+2016-03-29:
+* bat-scan.config: add configuration for unpacking Parrot PLF files.
+
+2016-03-28:
+* fwunpack.py: extract more information from Parrot PLF files. This still
+needs some more work, as PLF files have a slightly non-standard structure.
+
+2016-03-27:
+* fwunpack.py: start working on unpacking Parrot PLF files
+
+2016-03-26:
+* prerun.py: extra sanity checks for ihex unpacking
+* fwunpack.py: add extra flavour of squashfs
+* add reportcopyright.py to do a simple search of copyright statements in
+binaries
+* bat-scan.config: add configuration for copyright statement checker
+
+2016-03-19:
+* fwunpack.py: fix extra sanity check in ext2 unpacking
+
+2016-03-07:
+* generatejson.py: don't add a connection to the list of connections twice
+
+2016-03-05:
+* prerun.py: add verifier for Intel HEX files
+* fwunpack.py: unpack Intel HEX files
+* bat-scan.config: add configuration to unpack Intel HEX files
+
+2016-02-27:
+* generatereports.py: make gzip compression optional
+* guireport.py: make gzip compression optional
+* bruteforcescan.py: make gzip compression of pickles optional (not enabled
+yet)
+* rename generatelistrpm.py to extractrpms.py
+* generatejson.py: remove duplicate code
+
+2016-02-26:
+* createdb.py: work around error in zipfile module. The file
+xf86-input-keyboard-1.3.1.tar.bz2 from OpenWrt for example was misidentified
+as a ZIP file.
+* generatelistrpm.py: fixes for crc32
+
+2016-02-23:
+* brutefrorcescan.py: add 'compress' configuration option (default: no) for
+later use in reporting
+* generatejson.py: make JSON gzip compression optional
+* bat-scan.config: compress JSON files by default
+* bat-scan: fix using -u with relative paths
+
+2016-02-22:
+* createdb.py: work around Ninka barf
+
+2016-02-21:
+* createdb.py: fix invocation for Ninka
+
+2016-02-20:
+* createdb.py: interface to Ninka has changed, bump to 2.0-pre1
+
+2016-02-14:
+* fsmagic.py: add marker for Android backup files
+* fwunpack.py: unpack Android backup files
+* bat-scan.config: enable Android backup file unpacking
+
+2016-01-30:
+* batextensions.py: also look at .dts and .dtsi files (Linux kernel specific)
+
+2016-01-29:
+* updatesha256sum.py/generatelistrpm.py/createdb.py/createmanifests.py: newer
+TLSH implementations can handle files 256 bytes in size
+
+2016-01-27:
+* generatejson.py: extra sanity check
+* tag BAT 24
+
+2016-01-26:
+* fwunpack.py: extra sanity check for "compress"
+
+2016-01-25:
+* fsmagic.py: add marker for MS WIM files
+* fwunpack.py: dd copies permissions of original file, so chmod after dd
+* bruteforcescan.py: chmod after copying the binary to scan
+* fwunpack.py: use unpackFile() in ISO9660 unpacking
+* fwunpack.py: unpack MS WIM files with 7z
+* bat-scan.config: enable MS WIM unpacking
+* fwunpack.py: unshield can leave partial results, so clean up
+
+2016-01-24:
+* fwunpack.py: fix sanity check in jpeg unpacking, extract (some) XMP data
+from JPEG files
+
+2016-01-23:
+* generatejson.py: avoid creating database connections unnecessarily
+* bruteforcescan.py: fix debugging logic after rearranging scans
+* bruteforcescan.py: reintroduce setup methods for aggregate scans
+* licenseversion.py: use setup method
+* kernelsymbols.py: use setup method
+* bat-scan.config: configure setup methods
+* bruteforcescan.py: cleanups, don't create pools when not needed
+* licenseversion.py: inline compute_version()
+* licenseversion.py: more aggressively cache results
+* generatejson.py: first dump JSON results, then compress with gzip
+* licenseversion.py: don't create database connections if not needed. This
+helps in 'directory scanning mode' to keep the amount of database connections
+and sockets down.
+
+2016-01-22:
+* bat-scan: extra sanity check for broken symbolic links, plus properly create
+subdirectories in 'directory scanning mode'.
+* bat-scan/bruteforcescan.py: only do setup scans once when scanning in
+directory mode
+
+2016-01-20:
+* bat-scan: extra sanity check to make sure that file dir and output dir are
+not the same
+* prerun.py: add simple verifier for WAV files
+* fwunpack.py: extra sanity check for compress: first unpack some data and try
+to uncompress it. Because it is a stream this will succeed, even if the file
+is not complete. False positives can be filtered out easily this way.
+
+2016-01-19:
+* fwunpack.py: tag Java deserialized data
+* licenseversion.py: explicitely call commit()
+* generatejson.py: explicitely call commit()
+* identifier.py: explicitely call commit()
+* security.py: add code to check for certificates
+* bat-scan.config: add configuration for tagging certificates
+* identifier.py: treat Java serialized files as Java
+* licenseversion.py: explicitely do variable names processing just for C files
+now
+* licenseversion.py: don't unnecessarily read pickle files
+* prerun.py: remove bogus check for appledouble files
+* identifier.py: tag oat files as Java and ignore for now.
+
+2016-01-18:
+* prerun.py: finish code to tag WebP files
+* prerun.py: add another known extension for ICO files
+* prerun.py: also tag XML files that start with a UTF-8 byte order marker
+
+2016-01-17:
+* prerun.py: tag Chrome .pak files
+* prerun.py: tag more RSA certificate files
+* fsmagic.py: add magic for RIFF
+* prerun.py: start on verifying and tagging WebP files
+* bat-scan.config: add configuration for WebP verification prerun scan
+
+2016-01-16:
+* licenseversion.py: remove unused parameter from prune()
+* licenseversion.py: create cursors per language and process per language.
+This can save quite a few open sockets when using PostgreSQL.
+* file2package.py: fix multiprocessing
+
+2016-01-15:
+* prerun.py: better checks for Android Dex/Odex
+* prerun.py: tag Android oat files as "oat"
+* identifier.py: start parsing Dex files
+* security.py: tag openssh private keys
+* batdb.py: set autocommit for PostgreSQL
+* bruteforcescan.py/generatjson.py/licenseversion.py: set a time out for the
+queues to avoid PostgreSQL "idle in transaction" errors
+
+2016-01-13:
+* bat-scan.config: ignore sqlite3 files in the ranking scan
+* generatejson.py: use the length of jsontasks to determine the minimum of
+processes needed instead of the jsontasks list
+* generatejson.py: don't join the queue with just one thread, as that
+effectively makes generating the json files single threaded
+* fwunpack.py: merge unpackIco into searchUnpackIco
+* fwunpack.py: fix multiframe JPEG unpacking
+* fsmagic.py: add magic for Android oat packages
+
+2016-01-12:
+* prerun.py: add simple verifier for RSA certificates which can often be found
+in Android APK files
+
+2016-01-11:
+* prerun.py: start working on better sanity checks for MS Windows icons and
+cursor icon files
+
+2016-01-10:
+* bruteforcescan.py: move some code and comments related to unpack scans from
+leaf scans to unpack scans
+* prerun.py: thorough sanity checks for Android's Dex format
+* bat-scan.config: set minimumsize for iso9660 files
+
+2016-01-09:
+* fwunpack.py: only read two bytes for the ext4 sanity check in android sparse
+image files instead of the entire file. D'oh!
+* ext2.py: simplify ext2 unpacking
+* licenseversion.py: only call JAR aggregator if there are Java results
+
+2016-01-08:
+* fwunpack.py: extra sanity checks for Squashfs unpacking
+* fwunpack.py: simplify squashfs unpacking for weird squashfs
+* fwunpack.py: first check integrity of Android sparse file before unpacking
+* fsmagic.py: add magic for AppleDouble
+* prerun.py: tag AppleDouble encoded files (resource forks)
+* bat-scan.config: ignore resource forks in many scans
+* fwunpack.py: update Android sparse file unpacker for images that have an
+extra header in front of the ext4 file system. Needs many more sanity checks.
+
+2016-01-07:
+* bat-scan.config: don't test text files for Ogg
+* fwunpack.py: ext2 image cannot extend beyond the filesize. For this check
+also take the offset into account.
+* bruteforcescan.py: introduce minimumsize for unpackscans, so unpackscans can
+skip files that are too small
+* bat-scan.config: set minimumsize for yaffs2 as an example
+* fwunpack.py: don't unnecessarily loop over JPEG trailers
+
+2016-01-06:
+* bat-unyaffs (bat-extratools): support inband tags
+* fwunpack.py: rewrite YAFFS2 unpacking to use new bat-unyaffs and unpack more
+YAFFS2 file systems
+* fwunpack.py: fix JPEG size reporting
+
+2016-01-04:
+* unpackrpm.py: read a bit less data in RPM unpacking, add more sanity checks,
+add support for more payloads (depends on support in rpm2cpio though)
+* fwunpack.py: fix incorrect check in ZIP unpacking so a lot of data was still
+written to disk instead of directly into memory.
+* fwunpack.py: rewrite ZIP unpacking again, to correctly work around ZIP files
+just being stored (so not deflated again) inside other ZIP files, inside a
+file system that cannot be easily unpacked (like some flavours of YAFFS2)
+
+2016-01-03:
+* fwunpack.py: tagging fixes for XZ files
+* fwunpack.py: introduce ZIP_MEMORY_CUTOFF environment variable
+* fwunpack.py: fix diroffsets for PNG
+* checks.py: if there is blacklisted data skip checks that won't succeed
+because there is too little data
+* busyboxversion.py: if there is blacklisted data skip tests that won't
+succeed because there is too little data
+* busybox.py: don't read a file to search for the busybox version number if no
+busybox marker is present
+* busybox.py: try to match version numbers earlier, read a lot less data
+* fwunpack.py: fix encrypted ZIP reporting
+* fwunpack.py: add searchUnpackKnownZip() to bypass checks for files with
+known ZIP extensions. If unpacking the file this way is unsuccessful the file
+will be unpacked using the regular scanning process. Most files with known ZIP
+extensions will very likely be ZIP files.
+* bruteforcescan.py: remove tagKnownExtension() as it is no longer needed
+
+2016-01-02:
+* fwunpack.py: vastly simplify ZIP unpacking
+
+2015-12-31:
+* fwunpack.py: carve ZIP archives from larger files in a different way, add
+many more sanity checks for ZIP unpacking
+
+2015-12-30:
+* busyboxversion.py: like checks.py don't first write all non-blacklisted data
+to a file to search for the version string, but write each chunk of
+non-blacklisted data to a temporary file and then search that temporary file
+
+2015-12-28:
+* fwunpack.py: rework squashfs unpacking: filter out false positives earlier
+and report file size for more flavours
+* fsmagic.py: make Microsoft Cabinet archive header checking more robust
+* fwunpack.py: extra sanity check for RAR files (RAR 4 and earlier only for
+now)
+
+2015-12-27:
+* fsmagic.py: make RAR header checking a bit more robust
+* fwunpack.py: refactor some squashfs checks
+* fwunpack.py: do yaffs2 sanity check earlier
+* fwunpack.py: sanity checks for other variants of squashfs (dd-wrt, openwrt)
+* fwunpack.py: work around libmagic barf in exe unpacking
+
+2015-12-26:
+* fwunpack.py: version check fixes for squashfs, grab size from some squashfs
+file systems directly from the file
+* fwunpack.py: check for validity of ZIP files would fail if ZIP file did not
+start at offset 0
+
+2015-12-24:
+* checks.py: when data in a file is blacklisted don't first write all the
+non-blacklisted data to a file and then search for identifiers, but search the
+data rightaway.
+
+2015-12-22:
+* fwunpack.py: reset offset in cpio file for each trailer
+
+2015-12-20:
+* fwunpack.py: extra sanity checks for lzip, no longer depend on processing
+(English) output of lzip for file size verification
+* fwunpack.py: make names of anonymous PNG, JPEG and GIF files more predictable
+
+2015-12-19:
+* fwunpack.py: extra LZMA check
+* fwunpack.py: replace dependency on output of tune2fs by checking ext2 file
+directly
+* bruteforcescan.py: older versions of python-magic don't have CDF flags
+* bruteforcescan.py: don't build intermediate data structures unnecessarily
+
+2015-10-31:
+* busybox.py: fix finding version number
+* fwunpack.py: fix GIF unpacking
+* guireport.py: correctly report size of files even if no magic is set because
+libmagic barfed
+
+2015-10-18:
+* createdb.py: fix invocation of filterfiles()
+* createdb.py: don't try to delete the Ninka comments file twice
+
+2015-10-13:
+* fwunpack.py: unsquashfs can change permissions of directory it unpacks data
+into so permissions need to be changed back.
+* fwunpack.py: detect segfaults of certain squashfs unpackers and work around
+them
+* bruteforcescan.py: disable CDF scanning when determining 'magic'
+
+2015-10-12:
+* prerun.py: extra sanity check for verifyELF
+
+2015-10-08:
+* fwunpack.py: extra sanity check for broken gzip data
+* bruteforcescan.py: deal with broken symbolic links when python-magic does not
+like it because of encoding issues
+
+2015-10-03:
+* remove pretty printing option, as it was unmaintained
+* fwunpack.py: no longer rely on 'magic' to unpack cab files, better tag cab
+files where the whole file is a cab archive
+* fwunpack.py/extractor.py: rework extraction of Windows executable assembly
+information
+* fwunpack.py: extra sanity check for LRZIP
+* prerun.py: sanity check for processing readelf output
+* fwunpack.py: extra sanity check for XMP data in GIF
+
+2015-09-29:
+* licenseversion.py: explicitely call commit() on database connections to
+avoid lots of warning messages in the PostgreSQL log
+* release BAT 23
+* fwunpack.py: some more sanity checks for YAFFS2 unpacking (files need to be
+at least 512+16 bytes)
+
+2015-09-28:
+* generatejson.py: avoid running out of memory when dumping data to a json
+file.
+
+2015-09-27:
+* fwunpack.py: allow carving of SWF files from the middle of a file.
+* fwunpack.py: don't use struct.unpack() for PNG IHDR check as it will always
+be the same anyway
+* fwunpack.py: add first version of JPEG unpacker
+* prerun.py: remove verifyJPEG() as it is no longer needed
+* prerun.py: remove verifyJAR(), as it was not used and not working properly
+anyway.
+
+2015-09-26:
+* kernelanalysis.py/other files: remove calls to "modinfo" and replace by
+"readelf" instead
+* prerun.py: fix tagging of some ELF files
+* checks.py/guireport.py: fix reporting of names of applications found in the
+'marker' search
+* fwunpack.py: check if PNG has a valid IHDR chunk
+* remove module-init-tools as dependency
+* fwunpack.py: rework lookup of big endian candidates of JFFS2 file systems.
+Using a set instead of a list can save a lot of time. Also implement for
+cramfs (although there are not as many false positives as with JFFS2).
+
+2015-09-25:
+* checks.py: merge all marker searches for specific programs into one method
+to avoid reading a file X times
+* bruteforcescan.py: allow dumping of offsets into a Python pickle if
+configured
+* bruteforcescan.py: make minimum threshold of parallel generic marker search
+scan for the top level file configurable
+* bat-scan: add sanity check for configuration file
+* fwunpack.py: fixes for end of line marker in the PDF xref section
+* bruteforcescan.py: import (most) prerun scans and unpack scans once per
+thread instead of once per file
+
+2015-09-24:
+* bat-scan.py: add --version option
+* prerun.py: correctly tag Linux kernel modules that have a signature
+* prerun.py: remove verifyGzip as it is no longer needed since gzip unpacking
+has become a lot more efficient. Also removes another instance of processing
+English language output of an external command.
+
+2015-09-19:
+* prerun.py: allow marker search to work on a chunk of a file
+* bruteforcescan.py: allow the marker search to be run in parallel for the top
+level file, if it is larger than a certain size (hardcoded for now) and it
+does not have a known extension
+* bruteforcescan.py: don't build a list of scan tasks first, but put tasks
+into the scanning queue immediately, saving memory and making results
+available a very very tiny bit earlier
+
+2015-09-18:
+* fwunpack.py: rework LRZIP unpacking, with more sanity checks (size + MD5),
+allow uncarving from a bigger blob and remove a dependency on processing
+(English) output of lrunzip which prevents BAT from running on systems with
+other locales
+
+2015-09-17:
+* fwunpack.py: more sanity checks for GIF files
+* fwunpack.py: write out unpacked LZMA data earlier, tag and blacklist LZMA
+data whenever possible
+* fwunpack.py: don't forget to remove temporary gzip directories after
+unsucessful unpacking
+* fwunpack.py: add a (crude) way to avoid using "dd" in unpackFile() when
+carving data up to a certain length. This is useful in case the data has to be
+carved from really big files
+* prerun.py: do not tag files as "elf" if the size does not correspond with
+the file size. Test case: a firmware that starts with a valid ELF file. More
+research is needed.
+
+2015-09-16:
+* bruteforcescan.py: allow tagging for files that have not been completely
+scanned yet and pass tags as hints to unpacked files
+* prerun.py: remove verifyGIF() as it is no longer needed, ignore files tagged
+* fwunpack.py: filter out LZMA false positives by decompressing a small amount
+of data. Also add some more sanity checks to filter out more false positives.
+* fwunpack.py: don't follow symlinks in iso9660 files when copying the data.
+* fwunpack.py: extra ar header sanity check
+
+2015-09-15:
+* fwunpack.py: don't read all data from a file in PNG unpacking (leftover from
+old code that should have been deleted), also let webpng read from stdin to
+avoid hitting disk unnecessarily.
+* disable verifyMP4 for now as mp4dump is no longer packaged in Fedora's
+libmp4v2 package it seems
+* fwunpack.py: don't read the whole file for CPIO unpacking, but only the
+CPIO data
+* fwunpack.py: fix gzip file renaming if a filename was recorded in the gzip
+file
+* fwunpack.py: if length parameter given to unpackFile() is the same as the
+file size set the length to 0 instead, so the file can be copied or
+hardlinked.
+* fwunpack.py: if length given to unpackFile() is larger than dd's maximum
+limit: copy first, then truncate
+* fwunpack.py: tag jffs2 files if the whole file is a file system
+* fwunpack.py: correct offset reporting for PNG files
+* bruteforcescan.py: allow scans to pass contextual information about unpacked
+files to its children. This is useful for example to tell that files that were
+unpacked, such as PNG or GIF files are already complete files and no longer
+need to be scanned at all, saving memory, disk I/O and CPU time by skipping
+the marker search and any other scans as well
+* prerun.py: remove verifyPNG() as it is no longer needed, ignore files tagged
+as 'graphics' in verifyGraphics()
+* prerun.py/bat-scan.config: don't run verifyText() for files that have
+already been tagged as binary or text
+
+2015-09-14:
+* bruteforcescan.py: remove superfluous parameter to leafScan(), fix scanname
+in scan()
+* fwunpack.py: replace unpackGzip() by raw deflate unpacking. It can save a
+lot of disk I/O when carving gzip compressed data from large files
+* fwunpack.py: do not try to unpack a romfs that has 0 bytes
+* fwunpack.py: rename unpacked files that are gzip compressed and end with
+.tgz or .gz in the same way as gunzip does, unless the file had a name
+recorded in the gzip file
+* fwunpack.py: extra sanity check for LZO compressed data. Needs more work.
+* fwunpack.py: make PNG and GIF unpacking a lot more efficient
+
+2015-09-13:
+* prerun.py: allow setting offset for genericMarkerSearch
+* fwunpack.py: remove useless check (output from pdfinfo), add extra sanity
+checks for PDF unpacking
+* prerun.py: remove verifyBZ2, as it was broken and unused
+* fwunpack.py: big file fixes for XZ unpacking
+* fwunpack.py: mimic behaviour of unxz in XZ unpacking if filename ends in .xz
+and entire file is a XZ compressed file
+* bruteforcescan.py: pass hints from a scan about its children.
+* bruteforcescan.py: only compute which files to ignore by prerun scans once
+instead of per thread
+* bruteforcescan.py: fix putting tasks in scanning queue
+* bruteforcescan.py: add offsets to scan tasks. This might come in handy for
+for example precomputing offsets
+* fwunpack.py: mimic behaviour of bunzip2 if filename ends in .bz2 or .tbz2
+and entire file is a bzip2 file
+
+2015-09-12:
+* fwunpack.py: use the BZ2Decompressor object from Python's bz2 module and tag
+bzip2 files as 'bzip2' and 'compressed' if possible. Fix blacklisting and
+remove the unpackBzip2() method.
+* fwunpack.py: create searchUnpackKnownBzip2() method to short cut unpacking
+of files ending in .bz2 extension
+* file2package.py: rewrite file2package to an aggregate scan to get rid of
+lots of database connections
+
+2015-09-11:
+* licenseversion.py: fix license scanning for sqlite databases, make use of
+queues for copyright lookup
+* licenseversion.py: avoid starting processes unnecessarily
+* generatejson.py: use queues instead of pool.map() to avoid making lots of
+database connections
+* bruteforcescan.py: add stubs for blacklisting files that should not be
+scanned, also close database connections that are not needed
+* kernelsymbols.py: correctly close pool of workers, do not make database
+connections if not needed
+
+2015-09-10:
+* fwunpack.py: add unpacking for some MSI files
+* licenseversion.py: reduce database connections when using PostgreSQL,
+because under certain conditions it is possible to run out of network
+connections as sockets still stay open for a little while after closing the
+connection to the database.
+* generatereports.py: fix reporting for certain packages
+* licenseversion.py: combine extractJavaNames and extractVariablesJava to save
+on database connections
+
+2015-09-07:
+* bruteforcescan.py: several bug fixes and sanity checks related to database
+connectivity
+
+2015-09-06:
+* bruteforcescan.py: add hooks for methods that can unpack files based on
+extension, circumventing most of the 'brute force' scanning approach
+* fwunpack.py: add method to scan gzip files based on extension
+* bruteforcescan.py: if configured lookup the SHA256 of the file in the BAT
+database to see if it is a known source code file. If so, tag it.
+* bat-scan.config: ignore files that have been identified as source code files
+that are in the BAT database.
+
+2015-09-05:
+* unpackrpm.py: fix verification of RPM files if the RPM is embedded into
+another file and RPM offset does not start at 0
+* fwunpack.py: unpack Windows help files (.chm)
+* prerun.py: recognize and tag a few known certificate files so they can be
+ignored by other scans
+* fwunpack.py: extract and process GIF files in a slightly lazier way, reading
+less data and (possibly) reducing memory usage
+* fwunpack.py: read less data when extracting PNG files
+* fwunpack.py: fix ext2 unpacking (don't try to remove directory that was
+never made in the first place)
+
+2015-09-04:
+* fwunpack.py/bruteforcescan.py: fix around encoding issues in python-magic
+* prerun.py: record more ELF types
+* bat-scan/bruteforcescan.py: introduce 'cleanup' for cleaning scanning
+directories. This is useful when scanning a directory with lots of files that
+all need to be scanned and you don't want the unpacking directory to overflow
+with result directories
+* fwunpack.py: version checks for LRZIP
+* licenseversion.py: first check if there are any files for which there
+actually are identifiers before creating database connections and fetching
+data from the database
+* javacheck.py: also support class file format used in Java SE7 and SE8
+* fwunpack.py: fix GIF length check
+
+2015-09-03:
+* fwunpack.py: don't carve gzip compressed data out of a file if the deflate
+test already uncompressed all data. Instead, write it out to a file directly,
+possibly avoiding a lot of I/O.
+* fwunpack.py: clean up SWF unpacking, tag successfully unpacked SWF files.
+
+2015-09-02:
+* fwunpack.py: sanity check for LZO version number
+* fwunpack.py: extra sanity check for gzip by trying to uncompress a block of
+deflate data using zlib
+* fwunpack.py: don't read data unnecessarily in gzip crc data check, but first
+seek to offset
+
+2015-08-30:
+* fwunpack.py: add extra sanity checks for gzip (deflate header checks)
+* fwunpack.py: add revision check for ext2/3/4 file systems
+
+2015-08-29:
+* remove gcc-java (for jcf-dump) as a dependency
+* generatejson.py: decode weird characters
+* identifier.py: also check DEX_TMPDIR when using PostgreSQL
+* prerun.py: avoid calling xmllint for files that are guaranteed to be not XML
+files
+
+2015-08-28:
+* generatejson.py: include size
+* fwunpack.py: fix yaffs2 blacklisting check
+
+2015-08-27:
+* generatejson.py: sanity check
+* security.py: sanity check
+
+2015-07-27:
+* createdb.py: fix index name
+* createdb.py: don't read from a closed file
+
+2015-06-24:
+* fwunpack.py: fix CPIO blacklisting
+
+2015-06-23:
+* fwunpack.py: extra sanity check for LZMA
+* fwunpack.py: unpack some YAFFS2 file systems if they occur in the middle of
+a file. This does not work perfectly yet.
+
+2015-06-20:
+* fwunpack.py: fix and expand CPIO checks
+* fwunpack.py: extra sanity check for ar format
+* fwunpack.py: don't unpack multi-part gzip files
+* fwunpack.py: fix LZIP unpacking, add sanity check for LZIP version
+
+2015-06-19:
+* unpackrpm.py: extra sanity check for RPM header
+* prerun.py: avoid lots of dictionary lookups, read more data for marker
+search
+
+2015-06-18:
+* fwunpack.py: avoid extra call to dd by using truncate() in some cases, which
+is a lot faster
+* fwunpack.py: copy file instead of using dd in some cases if the file exceeds
+a certain size limit, to avoid it being truncated by the operating system
+* fwunpack.py: LZMA header checks. This might miss some malformed LZMA files,
+but it is likely that those were missed anyway.
+* fwunpack.py: more bzip2 header checks
+
+2015-06-17:
+* fwunpack.py: add JFFS2 header crc sanity checks
+* fwunpack.py: add bzip2 compression block size checks
+* fwunpack.py: add gzip flag checks
+
+2015-06-16:
+* licenseversion.py: ignore undefined caches
+
+2015-06-13:
+* bruteforcescan.py: always compute SHA256 and store it
+
+2015-06-11:
+* fwunpack.py: extra sanity checks for cramfs
+* fwunpack.py: better checking of Java serialized files
+* fwunpack.py: check PDF trailer more thoroughly to see if it is valid
+* fwunpack.py: inline ext2 checks into main ext2 unpacking method to avoid
+possibly creating many directories
+* fwunpack.py: fix for output of pdfinfo
+* fwunpack.py: inline JFFS2 checks into main JFFS2 unpacking method to avoid
+possibly creating many directories
+
+2015-06-10:
+* licenseversion.py: don't query the database for avgscores for every file
+that is processed, but just once for each language. In the case of large
+firmwares this can save many database queries and creation of new database
+connections.
+* various fixes related to closing database connections earlier, small
+cleanups and sanity checks
+* fwunpack.py: extra sanity checks for 'new' CPIO formats
+
+2015-06-09:
+* fwunpack.py: remove useless check for cpio, that would potentially involve a
+lot of I/O but which added no value at all
+* fwunpack.py: store less data for ext2 file systems for temporary unpacking
+files (might still need quite a bit of space initially though)
+* fwunpack.py: more sanity checks for Android sparse file systems
+* licenseversion.py: prevent too many connections being opened for PostgreSQL.
+Since sockets could stay open for a bit longer after the connection is closed
+it is possible to run out of sockets on the system when firmwares with many
+small files are scanned.
+
+2015-06-08:
+* fwunpack.py: more sanity checks for PDF
+
+2015-05-29:
+* release BAT 22
+
+2015-05-28:
+* more workarounds for http://bugs.python.org/issue6433
+* allow subdirectories when scanning in "directory mode"
+* bat-scan.config: enable BAT_KERNELSYMBOL_SCAN and BAT_KERNELFUNCTION_SCAN by
+default
+* images.py: remove unused code
+* prerun.py/fwunpack.py: stricter check for GIF unpacking
+* bruteforcescan.py: fix if the top level binary to be scanned is an empty
+file
+* bat-scan: sanity checks if the top level file is not a regular file, but a
+pipe, socket, etc.
+* fwunpack.py: better handle removing data that was already unpacked from ZIP
+files
+
+2015-05-27:
+* workarounds for http://bugs.python.org/issue6433 that is causing trouble on
+systems with Python 2.6 (like CentOS 6.6)
+
+2015-05-26:
+* bat-scan: sanity check for supplied parameters
+* fwunpack.py: workaround for old XZ versions that do not have -l
+* identifier.py/findlibs.py: workaround for older readelf versions that do not
+have --dyn-syms
+* licenseversion.py/kernelsymbols.py: workaround for older Python versions
+that do not have collections.Counter
+* kernelsymbols.py: checks for older versions of PyDot
+* bat-scan.config: enable USE_SOURCE_ORDER by default
+
+2015-05-25:
+* bruteforcescan.py/batdb.py: allow setting host, and port for postgresql
+connections
+* update depenencies: add psycopg2 as dependency and remove dependency on
+mtd-utils-ubi
+* add configuration for report generation in JSON
+
+2015-05-24:
+* bruteforcescan.py: store scandate in the pickle
+
+2015-05-21:
+* release BAT 21
+
+2015-05-20:
+* bat-scan.config: add zipend marker to configuration
+* fsmagic.py: add U-Boot marker
+* bat-scan.config: add U-Boot marker as option for YAFFS2 file systems, as
+U-Boot + YAFFS2 is a common combination for older Android file systems
+* bat-unyaffs: add more combinations of chunks and spares as seen in real life
+YAFFS2 file systems (searching for mkyaffs2image.c on the Internet revealed a
+few combinations)
+* fwunpack.py: unpack YAFFS2 file systems of certain older Android devices if
+they are preceded by a U-Boot header
+* bruteforcescan.py: fix knownmarker scan for ZIP files with comments
+
+2015-05-19:
+* renamefiles.py: fix for renaming symbolic links, which don't have results of
+'scans' as only 'real' files have those
+
+2015-05-18:
+* bruteforcescan.py: use reporthash for naming files as well. Currently this
+is restricted to SHA256 (default), MD5 and SHA1. In the future CRC32 and TLSH
+might be supported as well.
+* security.py: fix parameter type of query
+* bruteforcescan.py/fwunpack.py: add more ZIP sanity checks in case there turn
+out to be multiple "end of central directory" markers in a ZIP file
+* licenseversion.py: close database connection that wasn't closed.
+* generatejson.py: convert more file names and path names to UTF-8 first
+* generateimages.py: deepcopy() values of dictionaries first before passing
+them on to a multiprocessing.Pool(). In some older versions of Python this
+apparently caused some issues.
+
+2015-05-16:
+* generatejson.py: add realpath to JSON file
+* use 'checksum' in unpackreports instead of 'sha256' so in the future also
+other checksum types can be used
+* createdb.py + friends: use tlsh, if available. This is for future BAT.
+
+2015-05-15:
+* fwunpack.py: extract more things from the ZIP header for sanity checks
+* fwunpack.py: check if there is a valid end of central directory in a file.
+If there are more than one don't default to multi-zip ZIP, but first try to see
+if there are multiple ZIP files that simply have been concatenated, since zip
+(unzip, zipinfo, etc.) will try to use the last "end of central directory" in
+the file which is often not correct, and will also possibly blacklist parts of
+the file that should not be blacklisted.
+* bruteforcescan.py: check and record ZIP end of central directory offset
+* bruteforcescan.py: fix setting postgresql credentials and copying them to
+other scans.
+
+2015-05-13:
+* createdb.py: extract identifiers before licenses and copyright
+* createdb.py: ignore e-mail addresses starting with .
+* createdb.py: ignore bogus URLs
+* createdb.py: parse Python files using Python's built-in tokenize module.
+Extract comments and strings and write these to temporary files before feeding
+them to FOSSology. This is disabled by for now as the copyright offsets are
+still wrong.
+
+2015-05-12:
+* kernelsymbols.py: fix return values
+* bat-scan.config: disable mp4 tagging for now
+* fwunpack.py: introduce COMPRESS_MINIMUM_SIZE to deal with compress weirdness
+on Ubuntu
+* bruteforcescan.py: move postgresql connection information outside of envvars
+* bruteforcescan.py: make packing of scan configuration file optional
+(default: do not pack)
+
+2015-05-11:
+* jffs2.py: ignore JFFS2 summary nodes
+* fwunpack.py: better handle ZIP CRC errors
+* security.py: rewrite queries for postgresql
+* createdb.py: make urlcutoff configurable, also start cleaning up the vast
+amount of parameters passed around
+* createdb.py: don't modify files (for xgettext) but copy them instead
+
+2015-05-10:
+* identifier.py: only translate query once
+* generatejson.py: only translate query once
+* licenseversion.py: only select one result from the kernel function name
+cache for a string identifier instead of all results
+* licenseversion.py: finish rewriting all queries to work with postgresql and
+translate queries just once
+* kernelsymbols.py: rewrite queries to work with postgresql
+* kernelsymbols.py: don't do anything if there are no modules
+* licenseversion.py: ignore duplicate lines that have already been classified
+as unmatched
+
+2015-05-08:
+* fix error in scorecaches.py that would lead to wrong scores after
+refactoring
+
+2015-05-07:
+* add cleanidentifiers.py to delete string literals from extracted_string that
+are equal to or smaller than a certain minimum cut off value (default 4) or
+equal to or longer than a maximum cut off value (1000). The longer strings
+cannot be properly indexed by PostgreSQL (and are not very relevant anyway)
+and the shorter strings will not be used by the ranking algorithm but take up
+a lot of space in the database.
+
+2015-05-06:
+* scorecaches.py: don't select all string identifiers at once to prevent
+running out of memory
+
+2015-05-05:
+* createdb.py: don't store very long string identifiers, since some database
+engines (PostgreSQL for example) don't like indexing them. They are also
+likely to be bogus (Lorem ipsum, etc.)
+
+2015-05-04:
+* add more table and index definitions
+* licenseversion.py: more fixes for PostgreSQL support. Also better prepare
+for future language support
+* createdb.py: don't try to extract URLs from JavaScript right now (too many
+false positives)
+* createdb.py: ignore URLs that are longer than 1000 characters (and this
+probably can go down a lot)
+
+2015-05-03:
+* createdb.py: clean up results of extracted copyrights (URLs, e-mail
+addresses). This still needs a lot more work.
+* createdb.py: deduplicate information from Linux kernel modules, as some
+fields (module license, etc.) sometimes occurs multiple times
+* bruteforcescan.py: introduce 'extrapack' parameter that can be used to
+indicate which other files need to be packed. This needs more sanity checks.
+
+2015-05-02:
+* batdb.py: start using PostgreSQL style queries. If sqlite is used as a
+backend rewrite to sqlite notation
+
+2015-04-30:
+* add more database tables for PostgreSQL, rename a few tables
+* identifier.py: fixes for PostgreSQL
+* licenseversion.py: fixes for PostgreSQL
+* bat-sqlitetopostgresql.py: dump more data in PostgreSQL
+
+2015-04-29:
+* bat-sqlitetopostgresql.py: dump data in PostgreSQL more efficiently
+* split queries for postgresql into tables and indexes
+* batdb.py: set postgresql database/user/password via environment
+* clonedbinit.py: fix index name
+* createdb.py: if authdatabase is set but data (function names, variable
+names) could possibly copied from Linux kernel extract it instead of copying,
+as the datatypes would possibly be different.
+* createdb.py: add new column in processed_file to indicate whether or not a
+file is "third party" and copied into a package
+* createdb.py: add new index for extracted_string and remove an old one
+* generatejson.py: postgresql support fixes
+* file2package.py: postgresql fixes
+* licenseversion.py: update query to reflect new index
+
+2015-04-28:
+* bat-sqlitetopostgresql.py: dump more data in PostgreSQL
+
+2015-04-27:
+* file2package.py: fix invocation of filename2package, pass results in a more
+sane format
+* guireport.py: print more information from distribution checks
+
+2015-04-26:
+* generatejson.py: fix typos
+* createdb.py: optionally copy results obtained with ctags and xgettext from
+another database
+* add bat-sqlitetopostgresql.py conversion script for importing data from
+SQLite into PostgeSQL
+
+2015-04-21:
+* batdb.py: more PostgreSQL support
+* createdb.py: change database statements to avoid reserved PostgreSQL
+keywords
+* add file with create statements that can be used to set up the right
+database tables in PostgreSQL
+* several files: fixes for using PostgreSQL as backend
+
+2015-04-20:
+* generatejson.py: use database abstraction layer
+* generatejson.py: hack for encoding issues
+
+2015-04-19:
+* bruteforcescan.py: always process global configuration first
+* bruteforcescan.py: pass dbbackend flag to all scans in the environment
+* findlibs.py: prepare for multiple db backends
+* licenseversion.py: prepare for multiple db backends
+* identifier.py: prepare for multiple db backends
+* file2package.py: prepare for multiple db backends
+* kernelsymbols.py: prepare for multiple db backends
+* createdb.py: only chmod files and directories once
+* add bat database connection abstraction class (batdb.py)
+* licenseversion.py: use new database connection abstraction class
+
+2015-04-18:
+* findlibs.py: deal with relative symbolic links that point to paths outside
+of the directory of the symbolic link (one or more levels up)
+* generatejson.py: write JSON files in parallel
+
+2015-04-17:
+* findlibs.py: refactor, more documentation, make reverse mapping of plugins,
+use different colours for nodes that are plugins, tag plugins as 'plugin'
+* bruteforcescan.py: set template for anonymous files only at top level
+* fwunpack.py: use templates for anonymous files in XZ unpacking, ICO
+unpacking, GZIP unpacking and LZMA unpacking
+* renamefiles.py: recursively rename files and paths, also after templates
+have been applied
+
+2015-04-16:
+* kernelanalysis.py/kernelsymbols.py: deal with Linux kernel modules (2.6
+kernel and higher) that do not have a name ending in .ko
+* findlibs.py: deal with symbolic links that use absolute paths (default,
+since almost all symbolic links are now rewritten to use absolute paths),
+rework storing absolute paths for targets of symbolic links
+* findlibs.py: record more data about plugins
+
+2015-04-15:
+* renamefiles.py: handle duplicate files separately as they are not unpacked
+but results are copied instead
+* findlibs.py: store absolute paths for ELF files, both relative inside file
+system as well as on disk
+
+2015-04-14:
+* prerun.py: more sanity checks for ELF files that are truncated but which
+'readelf' thinks are valid
+* bruteforcescan.py: don't try to copy environment variables that don't exist
+in readconfig()
+* fwunpack.py: some size checks for bat-unsquashfs42. On Fedora the default
+unsquashfs will handle lzma compressed data, on Ubuntu it will not. The size
+checking code in the wrapper around bat-unsquashfs42 was not working well.
+* fwunpack.py: if a file name was set in a gzip file try to rename the
+unpacked file to that name if possible
+* bruteforcescan.py: make 'template' available that unpack scans can use to
+avoid using temporary file names, but have more predictable names
+* generatejson.py: gzip compress JSON files
+* fwunpack.py: don't try to unpack deleted files and directories from JFFS2
+file systems
+* bruteforcescan.py: restore cwd to old value after writing dump file
+* bat-scan: always set cwd to a known value before scanning a file
+* fwunpack.py: clean up after one of the Atheros variants of squashfs
+* fwunpack.py: correcty handle symlinks for squashfs if unpacking is done on
+another device than where results are stored and results are moved with
+shutil.move(). Instead of moving (which would result in a copy, possibly of
+entire file systems!) recreate the symbolic links.
+* add first try for renaming files based on having more information available
+after unpacking and some analysis
+
+2015-04-12:
+* findlibs.py: fix error in resolving symbolic links. Also resolve symbolic
+links recursively, if possible.
+
+2015-04-09:
+* fwunpack.py: check for presence of block terminator just before GIF trailer,
+as is required by valid GIF files
+* fwunpack.py: check blacklists for GIF files earlier
+* fwunpack.py: add more sanity checks for PDF (version number)
+* fwunpack.py: test for broken ZIP archives with bad CRC checksums
+* fwunpack.py: more sanity checks for JFFS2 and RZIP
+
+2015-04-08:
+* createdb.py: add more identifiers from Ruby files
+* createdb.py: allow copying of licenses and copyrights from an "authoritive
+license" database if available
+* fwunpack.py: initialize unpacktempdir for squashfs with 7z compression
+* fwunpack.py: correctly blacklist 7z unpacked files
+* security.py: extra sanity check for password files
+* security.py: don't look at binaries called "passwd" or "shadow"
+* security.py: fix db return value
+
+2015-04-07:
+* generatejson.py: fix cut/paste error
+* createdb.py: make chunksize for Nomos configurable
+* createdb.py: don't unpack archives, for example if there are presumably no
+source code files in the archive that need to be scanned
+* prerun.py: further rework verifyELF
+
+2015-04-06:
+* prerun.py: start reworking verifyELF to avoid processing output of readelf
+that is locale sensitive
+
+2015-04-04:
+* bat-scan: allow a whole directory to be scanned instead of just a single file
+* introduce "reporthash" option to allow that another hash (currently MD5,
+SHA1, CRC32) can be reported. At the moment only supported in generatejson.py
+
+2015-04-03:
+* fix for 7z unpacking
+
+2015-04-02:
+* fix for http://bugs.python.org/issue9993 (thanks to Johannes Hessling for
+reporting)
+
+2015-04-01:
+* pack scandata.json if present
+
+2015-03-30:
+* generatelistrpm.py: optionally use the possibly unsafe handling of spec
+files by RPM itself
+
+2015-03-24:
+* fwunpack.py: replace unubi by ubi_reader
+* add ubi_reader to bat-extratools
+
+2015-03-23:
+* generatejson.py: output more results as JSON
+
+2015-03-22:
+* start on outputting (partial) results as JSON
+
+2015-03-16:
+* add "reportendofphase" option
+* tag "toplevel" element before aggregate scans are run
+* simplify standard configuration
+
+2015-03-15:
+* release BAT 20.0
+* remove batgui from default distribution
+
+2015-02-27:
+* more password cracking with JtR
+* search files for presence of login names for which passwords were found,
+which can give hints about vulnerable binaries
+
+2015-02-26:
+* workaround for CVE-2014-8485
+* start on cracking passwords with JtR
+
+2015-02-25:
+* add code to read .spec files with RPM's own Python module, even though this
+is unsafe.
+
+2015-02-17:
+* more workarounds for Ninka regressions
+* process RPM spec files further
+
+2015-02-16:
+* more workarounds for Ninka regressions
+
+2015-02-15:
+* better workaround for Ninka regressions
+* fix errors in creating manifest files
+
+2015-02-10:
+* createdb.py: change text_factory for cursor for copyright statement
+extraction that was causing some issues.
+
+2015-02-09:
+* generatelistrpm.py: start working on processing RPM spec files
+
+2015-02-08:
+* createdb.py: replace calls to FOSSology copyright scanner with a single
+Python method. Currently only 'email' and 'url' are parsed, not other
+statements (this is a TODO). This shaves about 25% of the run time of the
+database creation script.
+* createdb.py: work around more Ninka regressions
+* createdb.py: fix checking previously scanned hashes. Instead of comparing
+complete dicts only check SHA256
+* createdb.py: fixes for BAT archives, although there is still something
+broken.
+
+2015-02-06:
+* createdb.py: work around Ninka regression
+
+2015-02-01:
+* createdb.py: keep basename for files in processed_file
+* createdb.py: add more tables for security, for keeping more metadata for
+RPM files and for package clones
+
+2015-01-26:
+* createdb.py: use DOWNLOADURL file
+* start processing Ruby files
+
+2015-01-25:
+* createdb.py: store download urls for files in 'processed' column
+
+2015-01-23:
+* add bat/kernelsymbols.py, a module to research and display relationships
+between Linux kernel images and modules, specifically for GPL licensed kernel
+symbols.
+* bat/checks.py: convert as many license names as possible to SPDX notation
+* createdb.py: start recording downloadurl, needs more work
+
+2015-01-20:
+* rework database renaming script slightly: don't drop tables, but merely copy
+data into a separate database. This saves a lot of I/O and waiting time.
+
+2015-01-19:
+* fix database renaming script, rename tables and various indexes, sync rest
+of the code to reflect the changes
+
+2015-01-18:
+* add first version of database renaming script: replace sha256 with checksum
+
+2015-01-16:
+* fix finding signatures in bat/batxor.py
+* add scripts/findxor.py, a very simplistic script to find XOR keys in
+firmware files
+* maintenance/createmanifests.py: don't create manifest files without content
+
+2015-01-15:
+* remove environment customization code per scan, do it globally instead
+* allow environment variables to be set globally
+* introduce XOR_MINIMUM to set a minimum threshold for XOR signatures to
+reduce false positives
+
+2015-01-14:
+* start moving customization of environment out of scans and to
+bat/bruteforcescan.py
+* bat/bruteforcescan.py: simplify a few paths
+* bat/extractor.py: remove unnecessary method
+
+2015-01-11:
+* further document BAT internals
+* properly handle 'temporary' tag
+* add another signature for XOR module, performance fixes for XOR
+
+2015-01-07:
+* start on detecting shell invocations in ELF binaries to detect possible
+security bugs
+
+2015-01-05:
+* add database table for security scanning to createdb.py
+
+2015-01-04:
+* simplify data structures used in identifier.py, document changes
+* fix regular expression for AC_INIT, record line number for result as well
+
+2015-01-03:
+* start documenting the internal data structures of BAT
+* add script for copyright extraction using Ninka and FOSSosogy and
+correlating the results from both. This still needs a lot of work.
+* start extracting security related information from C source code
+
+2015-01-01:
+* extract more information from Linux kernel
+
+2014-12-31:
+* extract more information from Linux kernel
+
+2014-12-22:
+* maintenance/generatelistrpm.py: prevent disk I/O by using -F flag for cpio,
+start working on making unpacking location configurable to be able to use
+ramdisks to speed up operations.
+
+2014-10-20:
+* exclude some more files from some packages
+
+2014-10-13:
+* fixes for extra hashes for kernel information extraction
+
+2014-10-02:
+* fix createbatarchives.py for new format of manifest files
+
+2014-10-01:
+* record extrahashes (if available) for processed archives
+
+2014-09-29:
+* fix detection of encrypted ZIP files
+* process entries in encrypted ZIP files and check if there is a known file
+inside the archive, that can be used in a known plaintext attack
+
+2014-09-28:
+* change format of SHA256SUM file to keep it more in sync with other files.
+Also fix updatesha256sum.py and make it read less data.
+
+2014-08-14:
+* optionally compute CRC32 for files for manifest files
+* move optional virus scan to separate module
+* start on processing encrypted ZIP files to find out if known plaintext
+attacks are possible
+
+2014-08-13:
+* bruteforcescan.py: better handle encrypted ZIP files
+* don't extract identifiers from encrypted files
+* createdb.py: optionally compute CRC32 for files
+
+2014-08-07:
+* copybatarchives.py: create a LIST file that has the BAT archives in the
+same order as in which they were generated
+
+2014-08-06:
+* add per scanning phase conflict and conflict checking
+* refactor leaf scan per scan debugging
+
+2014-08-03:
+* fix for tagKnownExtension if there is extra data in a ZIP file
+
+2014-07-26:
+* start on per scan debugging support
+
+2014-07-25:
+* process manifests with more hashes in createdb.py
+
+2014-07-14:
+* compute more hashes for manifests
+
+2014-07-12:
+* various bzip2 sanity checks in database creation scripts
+
+2014-07-10:
+* createdb.py: ignore statements extracted with copyright agent from
+FOSSology, clean up URLs and e-mail addresses that cannot point to any real
+copyright holders (example.com/net/org, localhost).
+
+2014-07-09:
+* createdb.py: optionally generate a list of checksum/language pairs that are
+added to the database
+
+2014-07-06:
+* replace old FOSSology notation with the newer (SPDX) names as used in
+FOSSology
+
+2014-07-05:
+* tag and release BAT 19
+* enable findlibs.py by default (effective BAT 20)
+
+2014-07-02:
+* remove useless architecture check from findlibs.py. Add a new one but
+disable it.
+* process configure.ac in createdb.py to get values from AC_INIT that might
+end up in a binary
+
+2014-07-01:
+* deprecate support for Ubuntu < 14.04
+
+2014-06-13:
+* add per package per file blacklisting for createdb.py
+
+2014-06-11:
+* extra sanity check for compress unpacking
+
+2014-06-09:
+* open script to create scores table in the caching database
+
+2014-05-12:
+* findlibs.py: optionally generate SVG files
+
+2014-05-11:
+* fwunpack.py: don't read a whole file when unpacking GIF files
+* fwunpack.py: fix GIF blacklisting
+* identifier.py: if loops_per_jiffy is the first symbol in the list it could
+be preceded by a non-NULL character
+
+2014-05-09:
+* fixes for unpacking squashfs file systems (Atheros 2 flavour)
+* don't try to move symlinked directories in cramfs unpacking, since
+shutil.move() doesn't like that
+* fix if there are duplicate JFFS2 inode numbers in a file. This could happen
+if there are two file systems that have been concatenated.
+
+2014-04-29
+* bat/bruteforcescan.py: add debugging statements to writeDumpfile()
+* tag BAT 18
+* don't extract kernel symbols from blacklisted parts of files (like tar
+files)
+
+2014-04-27
+* identifier.py: add missing parameter if DEX_TMPDIR was not set
+* fwunpack.py: fix EXE 7z unpacking
+
+2014-04-22
+* createdb.py: don't pass dict around necessarily to avoid serialization in
+case the dict is large.
+
+2014-04-21
+* add script to create and update SHA256SUM file in source code directories
+
+2014-04-17
+* fix check to see if postgresql/fossology is running
+* sanity checks to filter out output from ctags that is not interesting
+
+2014-04-16
+* allow creation of a hash conversion table in createdb.py. Values are limited
+to hashes from hashlib in Python
+
+2014-04-15
+* fix scoring for strings that were matchednotclones, but later directly
+assigned to a package
+
+2014-04-03
+* fix offset for JFFS2 unpacking
+
+2014-04-02
+* rename bruteforce-config to bat-scan.config
+* release BAT 17
+
+2014-04-01
+* extract more information from ELF files
+* replace calls to libmagic in kernelanalysis with tag lookups
+* some list -> set() conversions, don't store too much temporary data in
+generateimages.py unnecessarily
+
+2014-03-31
+* rework 7z unpacking
+
+2014-03-30
+* rework checks for OpenType font data
+* run some sanity checks in fwunpack.py earlier to prevent data being copied
+needlessly
+* return earlier in generateimages.py and generatereports.py if there are no
+ranking results
+* rework PDF processing in checks.py
+* rework ELF dynamic lib searching and architecture checks in checks.py
+* change outputlite default to 'yes'
+
+2014-03-29
+* replace own counters with collections.Counter()
+* add sanity check for JFFS2 inodes to filter out false positives earlier and
+preventing copying data unnecessarily
+* change priorities for checkXML and a few other prerun checks
+
+2014-03-28
+* add tagKnownExtension to quickly verify files (currently only ZIP files) to
+prevent genericMarkerSearch to run for big files
+
+2014-03-27
+* manual updates
+* add JFFS2_TMPDIR so jffs2 can be unpacked on for example ramdisk
+* add TAR_TMPDIR so tar can be unpacked on for example ramdisk
+* filter out false positives for tar files earlier, possibly preventing a lot
+of I/O for large files
+* precompile a regular expression used for processing output from dedexer
+* unpack contents of file systems converted with simg2img directly instead of
+storing and scanning the temporary ext4 file system
+
+2014-03-26
+* extract more identifiers from the Linux kernel
+* more unpack optimisations in fwunpack.py
+
+2014-03-25
+* set unpackdir for createdb.py via configuration
+* add large file support functions to findlibs.py
+* copy fewer bytes in unpackFile in fwunpack.py. For big files if only a small
+part of the file is needed (for example at the beginning and the rest is
+blacklisted) this can save quite a bit of I/O.
+
+2014-03-24
+* rename bruteforce.py to bat-scan
+* set TMPDIR for ctags in createdb.py to unpackdir
+* only tag JAR files with 'ranking' for which results have actually been
+aggregated
+* unescape output from jcf-dump
+* partially fix reporting for aggregate jars
+* more work on updating the manual for BAT 17
+
+2014-03-23
+* store Linux kernel module names in database
+
+2014-03-22
+* make reports for assigned strings and display them in the GUI
+* extract more information from Linux kernel
+* map file names of the Linux kernel to possibly used module names
+* merge extractkernelconfig.py into createdb.py
+
+2014-03-21
+* continue working on options to look at extracted strings in context. Also
+fix a few errors in string assignment.
+
+2014-03-20
+* add (incomplete) option to not look at extracted strings in isolation, but
+use information about in which files they were found to make a better educated
+guess for assignment to a package
+
+2014-03-19
+* integrate aggregatejars.py into licenseversion.py since it is very specific
+to the ranking method used.
+* make lookups into the database parallel again in licenseversion.py
+* introduce priorities for leafscans
+
+2014-03-18
+* further split ranking.py: put identifier extraction in identifier.py, merge
+the scoring algorithm into licenseversion.py. Needs additional work to make
+database look ups a bit more efficient.
+
+2014-03-16
+* fixes for android sparse files
+* checks for return values in ranking.py
+* ignore some more files by default in prerun tagging
+
+2014-03-15
+* add simg2img from AOSP to convert Android sparse files to ext4 images
+* unpack Android sparse files
+
+2014-03-13
+* ranking.py: optionally set string cut off value via configuration file
+* ranking.py: split extraction of string constants/identifiers and computing
+scores and doing database lookups
+
+2014-03-12
+* add script to test integrity of archives
+* add very crude kernel function name reporting
+* release BAT 16
+* replace "program scans" with "leaf scans" everywhere for BAT 17
+
+2014-03-10
+* createbatarchive.py: support MANIFESTS to prevent checksums from being
+generated if they are already known
+* add script to efficiently copy BAT archives and normal files from the
+directory used to generate the BAT archives
+
+2014-03-09
+* support LZMA compressed data in createdb.py and createbatarchive.py
+* remove more duplicate information from the BAT archives
+
+2014-03-08
+* createbatarchive.py: generate SHA256SUM-ARCHIVE files
+
+2014-03-07
+* createdb.py: use SHA256SUM-ARCHIVE if available
+
+2014-03-05
+* createbatarchive.py: store order in which archives were created as this is
+important for order in which the files should be read by createdb.py
+
+2014-03-03
+* include statistics piecharts in reports in GUI
+* add more data to statistics piecharts
+* better handle kernel function names
+
+2014-03-02
+* process patches with ctags to get (some) identifiers out of patches. This is
+not always complete since ctags depends on contextual information (like
+matching curly brackets) which might have gotten lost in the patch
+* keep better track of amount of unmatched lines and use this information for
+generating better piecharts with statistics about assignments
+* add number of matches in piecharts with statistics about assignments
+* keep better track of matched, but unassigned lines (too low score). Report
+these in the statistics piecharts and reports. Also fix a few errors: not all
+unmatched lines for the Linux kernel were stored
+
+2014-03-01
+* add support for package specific extensions and process these files as well.
+Currently output from ctags is not yet processed since ctags looks at
+extensions to guess the language. Files should be temporarily be renamed first
+before being fed to ctags.
+
+2014-02-28
+* replace most (but not all) options in batchextractprogramstrings.py with a
+configuration file. The configuration options that are 'static' (location of
+databases, default settings for cleanups, etc.) are in the configuration file,
+other options are still passed on the commandline.
+* rename batchextractprogramstrings.py to createdb.py
+
+2014-02-27
+* store C# methods in database
+* declutter return values of extractstrings() in batchextractprogramstrings.py
+* start on processing patch/diff files (unified diff only) in
+batchextractprogramstrings.py
+
+2014-02-26
+* make percentage cut off values for pie chart generation configurable
+
+2014-02-25
+* support big endian cramfs
+* sanity checks in prerun.py
+* prevent ranking.py from being run even if there are no databases. This was a
+fallout from rewriting ranking.py for BAT 15
+* add scan to fix duplicates (only ELF libraries for now)
+* rework deduplication for postrun scans. This fixes reporting for duplicate
+scans.
+
+2014-02-22
+* tag duplicate files in GUI
+
+2014-02-21
+* use a shared dictionary of files that have been unpacked and tagged, or are
+in the process of being unpacked and tagged. This is to avoid duplicate
+unpacking and tagging, which can take a lot of time if there is a lot of
+duplication.
+* fix PNG blacklisting
+* remove ELF files of which contents are in the blacklist
+
+2014-02-17
+* add more debug information
+* simplify clone detection script
+
+2014-02-16
+* extract more information from Linux kernel for modules and store in the
+database
+
+2014-02-15
+* extract more information from Linux kernel for module parameters
+
+2014-02-14
+* add script to find full and (some) partial clones in the BAT database
+* make generatelistrpm.py more parallel (rpm -qpl bit)
+* extract more data from Linux kernel sources
+* correct order for Linux kernel strings that are prefixed with kernel levels:
+first deal with the levels, then split on ':'. This reduces the amount of
+false positives I got for the kernel (and instead would get matches for Xen
+).
+* fix crash when unpacking unsupported old cramfs file systems
+* support old cramfs file systems
+
+2014-02-13
+* use manifest files with checksums for every individual source file if
+available
+
+2014-02-12
+* use file with precomputed SHA256 checksums for archives if available
+
+2014-02-11
+* use better markers in MANIFEST.BAT file in BAT archive files
+* rewrite batchextractprogramstrings.py to support BAT archives. This still
+needs some more work to deal with some edge cases.
+
+2014-02-10
+* add script to create BAT archive files. This is useful in cases where a
+database needs to be recreated and various versions of programs vary little,
+but are big. The best example is the Linux kernel. Processing the BAT archive
+instead of the original file is a lot faster.
+
+2014-02-06
+* squash names for function names and variable names, making it easier on the
+GUI
+* rework batchextractprogramstrings.py functionality that deals with detecting
+whether or not packages with the same name + version number are identical.
+This was rather inefficient.
+
+2014-01-13
+* fix bug in aggregatejars.py, if there were copies of JAR files results would
+only be aggregated for one instance.
+
+2014-01-12
+* update FOSSology/Ninka compare script
+* precompile some regular expressions in ranking.py to make processing Java
+class files a bit faster (I hope)
+
+2014-01-08
+* add script to compare results of FOSSology and Ninka to help find where they
+differ and to make FOSSology and Ninka better
+
+2014-01-05
+* unpack files in parallel in generatelistrpm.py, at least for as much as
+possible
+
+2013-12-27
+* extract strings and other data from Python files
+
+2013-12-26
+* extract strings and other data from PHP files
+
+2013-12-15
+* ubifs -> ubi
+* add magic for ubifs
+
+2013-11-25
+* add missing indexes to database
+* split EXPORT_SYMBOL and EXPORT_SYMBOL_GPL
+
+2013-11-19
+* fix for ELF extraction in ranking.py. Needs more work.
+
+2013-11-06
+* fix error in storing paths in extractkernelconfig.py
+* add new script to derive a kernel configuration from BAT result and database
+with kernel configuration directives
+
+2013-11-04
+* remove templink hacks from PDF, ISO and TAR unpacking, which could possibly
+lead to race conditions and did not work if temporary unpack dir and file to
+be linked were on different partition.
+* fix blacklisting size bug in ISO unpacking
+* start on creating prettier variable names reporting, including versions for
+unique hits
+* fix edge case tagging for Java class files (multiple valid class file
+headers)
+* create more piecharts for visualizing how many hits were unique, assigned,
+or unmatched
+* fix labels for version charts
+
+2013-11-03
+* extract more information from Linux kernel source code files
+* start on extracting copyright information in licenseversion.py
+
+2013-11-02
+* fix symlinking in findlibs.py, also generate graphs for end points of the
+graph
+* update batchextractprogramstrings.py for FOSSology 2.3.0
+* extract more information from Linux kernel source code files
+
+2013-10-10
+* tagging and releasing 15.0
+
+2013-10-09
+* disable 'findlibs' by default because Debian (and Ubuntu) ship an old broken
+version of pydot
+* remove pychart as a dependency, no longer needed with switch to reportlab
+* remove bat-generate-chart.py from bat-extratools
+* update configurations for Fedora and Ubuntu packages
+* fix font path for Ubuntu, but it is a crude fix that is not very portable to
+other distributions
+
+2013-10-08
+* remove unused code from ranking.py
+* update default configuration with configuration settings from actual scan
+machine
+* update manual for BAT 15
+* generatereports.py: cache squashing of versions where possible
+* several list -> set conversions in various files
+
+2013-10-07
+* store language in top level ranking result instead of hidden somewhere in
+the results of the variables
+* add COMPRESS_TMPDIR for writing temporary files for compress to ramdisk
+* filter prerunscans based on noscan and magic
+* rework Windows icon unpacking
+* add aggregate scan to remove certain types of files from the scan, based on
+tags
+
+2013-10-06
+* pass unpacktempdir to leaf scans
+* add supersimple Windows ICO verifier
+* fix blacklisting for PNG
+* add DEX_TMPDIR for writing temporary files for dedexer to ramdisk
+* various list -> set changes
+
+2013-10-05
+* replace pychart with reportlab for generating version charts.
+* better JPEG tagger
+
+2013-09-30
+* introduce LZMA_TMPDIR that can be set to for example a ramdisk to speed up
+LZMA unpacking significantly.
+
+2013-09-29
+* fix permission issue for directories in tar unpacking
+* recognise and tag sqlite3 databases
+
+2013-09-27
+* rework internal format for storing results. Especially if different versions
+vary very little (like versions of stable Linux kernel) quite a bit of space
+can be saved.
+
+2013-09-26
+* better filter for LZMA unpacking, based on some information from various
+implementations, default settings, plus firmwares found in the wild.
+* rework MP4 verifier
+* start work on Android resources verifier
+* fix unlinking in deserialized Java unpacker causing false positives
+
+2013-09-25
+* licenseversion.py: grab function names in parallel
+* licenseversion.py: grab license information in chunks
+* ignore ELF files in GIF unpacking, yaffs2 unpacking and jffs2 unpacking
+* change data structures in ranking.py: lists -> set, also replace list
+concatenation with append()
+* prevent some string concatenation in generatereports.py
+* remove unused code in ranking.py and prerun.py
+* deduplicate return offsets in prerun.py
+
+2013-09-24
+* fix ignore list of jffs2 and yaffs2 in bruteforce-config
+* don't pass 'scans' around needlessly in bruteforcescan.py: arguments passed
+to subprocesses are pickled first and this data does not change.
+* extract pickles in parallel again in generateimages.py
+
+2013-09-23
+* check beforehand whether or not a result needs to be pruned.
+* licenseversion.py: don't convert sets back to lists in prune(). Also replace
+this in several other files. It can save quite some time as detailed in the
+comments of this post:
+https://plus.google.com/115212051037621986145/posts/HajXHPGN752
+* add verifier for OpenType font data, requires fonttools
+
+2013-09-22
+* don't copy reports and images to a temporary location if 'cleanup' is set
+but directly write them to the final destination.
+* verify and tag ODEX files
+
+2013-09-21
+* licenseversion.py: skip equivalent versions (same identifiers) in pruning
+* licenseversion.py: shorter loops in pruning by removing unneeded data earlier
+* generatereports.py: write results of unique result snippets to disk directly
+without keeping them in memory
+
+2013-09-20
+* licenseversion.py: replace processing files in parallel with processing
+results per file in parallel. In case of one or a few large result files (like
+the Linux kernel) this is much more efficient.
+* don't write results back to disk that don't need to be written back to disk
+because they have not been changed.
+* licenseversion.py: rework pruning (select fewer values)
+
+2013-09-19
+* replace Pool.map() with a few queues for unpacking to have better
+interleaving of scans for unpacking.
+
+2013-09-18
+* pass unpacktempdir to aggregate scans so temporary files are packed in the
+right location
+* finish option to ignore files with certain extensions
+
+2013-09-17
+* easier notation for marking node types in findlibs.py.
+* add some sanity checks for LZMA: after the magic header not all bytes are
+allowed, so filter out the ones that are not used in practice. For some files
+(like in the ASUS Padfone 2 firmware) this means a big reduction in time spent
+scanning.
+
+2013-09-16
+* clean up more code of ranking.py, remove all traces of using main database
+from it.
+* add new 'extensionsignore' option for unpack scans and leaf scans for
+ignoring files with a certain extension. This is useful for for example
+application specific files that trigger many LZMA unpacking false positives.
+* ELF: store possible plugins, extract RPATH, ignore a few very generic
+symbols that would lead to false positives, like __divdi3 and friends.
+
+2013-09-15
+* remove on the fly caching code from ranking.py. It was not well maintained,
+made other code a lot harder to read, was very time intensive to test and also
+made the code a bit slower.
+* rewrite ranking.py so only caching databases should be needed, still needs a
+few cleanups and new checks.
+
+2013-09-13
+* only use jcf-dump once instead of twice. This saves launching an extra Java
+process per .class file.
+
+2013-09-12
+* propagate setting of 'processors' to aggregate scans.
+
+2013-09-11
+* remove packages that can never contribute to a score (and that will never be
+selected anyway) from the input in ranking.py
+* clean up data that will never be selected. This speeds up string assignment
+a lot.
+
+2013-09-10
+* remove unnecessary database lookups in ranking.py but only if rankingfull
+is set
+
+2013-09-09
+* move all license code from ranking.py to licenseversion.py
+
+2013-09-08
+* move checking of versions of function names (C only right now) to
+licenseversion.py
+
+2013-09-06
+* prune results of function names as well.
+
+2013-09-05
+* prevent reading result pickles twice in generatereports
+* prune versions in results, after determining all possible versions. In most
+cases this will not save any space or computing time, but in cases where there
+are a ton of hits, plus many versions in the database (like the Linux kernel)
+it can have a big impact on the size of the result pickles, plus reporting.
+
+2013-09-04
+* remove version checking code from ranking.py and move it to a separate
+aggregate function. The reason is that with the version information the
+pickles can get really large (example: Linux kernel). The pickles are read by
+some aggregate scans, but they only need a bit of information. By moving the
+version determination to a later point reading a large pickle from disk (even
+when the information is not needed) can be avoided. Pruning of results will be
+integrated in version checking as to further reduce the size of pickles.
+
+2013-09-03
+* fix kernel symbols extraction from binaries for more cases. Possibly it
+would still not run correctly in a few cases, but better than it was.
+* first check for Linux kernel function names before checking for strings in
+any package. This lead to false positives if a string extracted from a kernel
+image (representing a function) was also present as a string constant in
+another package except the kernel.
+* extract more kernel symbols from Linux kernel sources.
+
+2013-09-02
+* fix JFFS2 symlinks (as far as possible and reasonable)
+* detect timezone files (not extensive) and ignore them in ranking scan
+* detect and tag WOFF font files
+* add optional parameter to packagerename.py for helping regenerate caches
+without having to regenerate the entire cache
+
+2013-09-01
+* fix in report generation in case filename does not have a path component
+* don't report and display false ranking results
+* start on fixing symlinks for JFFS2 (if possible)
+
+2013-08-29
+* correctly clean up for false cramfs match
+
+2013-08-22
+* continue reworking extractkernelconfig.py
+
+2013-08-21
+* start reworking extractkernelconfig.py to extract more kernel configuration
+directives
+
+2013-07-07
+* bump Ninka version
+
+2013-07-05
+* fix GUI help text
+
+2013-07-04
+* display result of distribution check in table format, not a list
+* add links to pretty printed source code for function name reports
+* don't store variable names with function names. This reduces the amount of
+false positives.
+* remove false positives from ranking
+
+2013-07-03
+* let unpack return an array 'hints'. This will contain a list of which scans
+to try next. The use case is that certain firmwares and binary formats, such
+as uImage, FIT and HDR, will in practice only contain certain file systems and
+compression formats. By giving hints scans can be reordered and reprioritised
+on the fly.
+
+2013-07-02
+* add another lzma marker
+* add optmagic
+* add jffs2 big endian marker
+* start reworking EXE scanning
+* add unpacking support for big endian jffs2
+
+2013-06-28
+* extract and store more information from Linux kernel modules
+
+2013-06-27
+* extract information from module_param and module_param_named
+* allow maximum number of processors that can be used to be set. Needs some
+more sanity checks.
+
+2013-06-24
+* start on making reports for function names that are more useful than just a
+list of function names. This still needs a lot of work, similar to the unique
+matches for string matches.
+
+2013-06-23
+* pass 'debug' to individual scans (except for pretty printers)
+* add reports with distribution checks to reports. This still needs some more
+work to make it look good.
+
+2013-06-22
+* add check for matching consistency of architecture and versions of Linux
+kernel modules
+* make main report in GUI easier to navigate, plus reorder results a bit
+(string matches first, then function matches)
+* start reworking file2package
+
+2013-06-20
+* add more function names to the list of standard interfaces
+
+2013-06-19
+* display dynamic ELF pictures in GUI
+* tag Linux kernel and (some) kernel modules in the GUI
+
+2013-06-17
+* actually commit script to compare two unpacked binaries/firmwares for
+differences
+* add program to compare a source code archive based on results generated with
+BAT
+
+2013-06-13
+* filter out new format (Linux kernel 3.6 and later) for KERN_ERR and friends
+in ranking.py.
+* filter function names from the kernel (not reported yet)
+* add script to compare two unpacked binaries/firmwares for differences
+
+2013-06-11
+* rename xmloutput to ppoutput. Allow for separate modules for storing per
+scans pretty printers, so people wanting to have custom pretty printers do not
+have to overwrite the existing modules, but can use a parallel set of pretty
+printers instead.
+
+2013-06-10
+* extract functions from the Linux kernel, and also extract more strings that
+can be found in __ATTR and friends: xgettext won't catch them, so some regular
+expression magic is needed.
+
+2013-06-08
+* split lookup of kernel symbols, lookup symbols for kernels that are not in
+ELF format
+* store function names from the Linux kernel as 'kernelfunction'
+
+2013-06-07
+* fixes for ELF scanning: I have bumped into situations where corrupt ELF
+files (valid header, but files incomplete, for example after broken squashfs
+unpacking) would make ELF scanning fail.
+* finish RZIP unpacking
+* add extra sanity check for broadcom variant of squashfs to properly
+determine blacklist (or at least more reliably)
+* reorder priorities so squashfs unpacking is run before gzip unpacking
+(preventing gzip of unpacking gziped files inside inodes, which sometimes can
+happen with the broadcom variant of squashfs, like for example used in the
+ASUS RT-N66U)
+* fix ZIP blacklisting
+* disable mergeBlacklist for now since it is not reliable
+* fix extraction of BusyBox version number
+* check whether tags returned by unpack scans are in 'noscans' of subsequent
+unpack scans. If so, continue on to the next scan.
+* add patches for CVE-2012-4024 and CVE-2012-4025 for squashfs4.2
+* pass tags around better for leaf scans
+* increase fidelity for Linux kernel scanning by locating kernel symbols in
+the kernel image (if not ELF) and don't treat them as normal strings to reduce
+false positives.
+
+2013-06-06
+* use cloning database for Java method names, field names and class names
+* add stubs for RZIP unpacking
+
+2013-06-04
+* add missing file checksum back to report
+
+2013-05-31
+* fix database sanity check
+
+2013-05-19
+* add script to walk source tree and compare all source files to database.
+This is for my talk @ LinuxCon Japan 2013
+
+2013-05-16
+* add 'empty' tag for empty files
+
+2013-05-14
+* report duplicate files for top level file
+
+2013-05-11
+* tag and release BAT 14
+
+2013-05-10
+* move almost all setup code in ranking.py to separate method
+* fix cramfs unpacking so it is correctly carved out from files.
+
+2013-05-07
+* add hook to run setup code for programscans. Still needs work.
+
+2013-05-05
+* fix unpacking inefficiency in generatelistrpm.py
+
+2013-05-03
+* add tons of more functions and variables that are part of various standards,
+like LSB, or which are common system calls, or for some reason are in glibc or
+uClibc (not complete yet)
+* generate linking pictures in parallel
+
+2013-05-02
+* correctly resolve WEAK symbols in findlibs.py, add numbers to edges
+indicating number of used symbols, make some edges dotted if all used symbols
+are part of POSIX
+
+2013-04-29
+* work around squashfs unpacking crashes in some variants if 7zip compression
+is used instead of lzma or zlib
+
+2013-04-28
+* add yet another variant of squashfs+lzma (for newer Broadcom devices) to
+bat-extratools
+
+2013-04-27
+* add another variant of squashfs+lzma to bat-extratools
+
+2013-04-26
+* rename generate-version-chart.py, add extra parameter
+* add more information to variable names report. This should actually have a
+graphical representation
+* replace bat-unyaffs with Python reimplementation
+
+2013-04-24
+* tag symbolic links, so there is no need to rely on the 'magic' attribute
+anymore.
+* remove use of 'magic' attribute as much as possible from the code
+* search for kernel variables and print in a report. Needs more work.
+
+2013-04-23
+* add reimplementation for unyaffs which should not segfault, like the current
+one sometimes does.
+
+2013-04-19
+* add tag 'linuxkernel' if an ELF file has a certain section only used for the
+Linux kernel
+
+2013-04-18
+* update Ubuntu + Debian configuration
+* tagging 13.0
+
+2013-04-16
+* make sure PNG check does not barf on broken PNG files
+* fix unpacking of romfs
+* fix filter in GUI
+
+2013-04-15
+* handle blacklists in ELF files differently. This is for Linux kernels that
+are distributed as ELF files and have parts of the file blacklisted (initrd).
+By extracting sections and checking if only the sections are blacklisted the
+check can be more fine grained.
+
+2013-04-10
+* fix return value for forges
+
+2013-04-02
+* create index for origin in processed
+
+2013-04-01
+* fix error in batchextractprogramstrings in variable name extraction.
+* remove temporary directories that might have already been extracted by
+cabextract
+
+2013-03-27
+* better handle newlines in output of pdfinfo
+
+2013-03-17
+* expand picture generation in findlibs.py, does not yet take WEAK symbols
+into account
+* prevent infinite looping in Broadcom variant of unsquashfs
+* change default parameters for bat-romfsck
+* fix error in gzip unpacking: too much stuff was blacklisted if offset != 0
+* rewrite genericSearch so it only searches a file once for license and forge
+scanning
+* add per scanning phase debugging, still needs documentation
+
+2013-03-16
+* store kernel symbols (exported with EXPORT_SYMBOL*) as 'kernelsymbol'
+instead of 'variable'
+* update dedexer to 1.26 since it can handle ODEX files better
+* add support for supplying list of rewrites to batchextractprogramstrings.py
+* enable new Atheros version of unsquashfs
+* prevent infinite looping in unpacking squashfs file systems for Atheros 2
+variant and OpenWrt variant. Other variants need fixes as well.
+
+2013-03-15
+* fix error in batchextractprogramstrings.py: wrong type was stored for
+variables extracted from the Linux kernel
+* add undeclared but used dependencies to graph pictures in findlibs.py.
+Change colour of edges.
+
+2013-03-14
+* fix ZIP unpacking error
+* better handle unsquashfs errors. There are some squashfs file systems where
+file systems from Broadcom seem to be unpacked successfully by normal
+unsquashfs versions and other versions of squashfs, but where unpacking
+actually fails with gzip errors. By treating these as errors the script will
+fall through to the broadcom unpacker which (hopefully) will be successful.
+* generate separate ELF report (needs actually to be moved to findlibs.py) and
+display in the GUI
+* add squashfs variant for Atheros. This variant is not yet enabled, but needs
+more testing first to determine the right order where to place it (before the
+other Atheros unsquashfs for sure)
+
+2013-03-13
+* fix reports
+* partially parallelise findlibs.py
+* generate pictures in findlibs.py
+* fix GUI so at least some information about empty files/symlinks/etc. is shown
+
+2013-03-12
+* kernel modules might store strings in different sections than .rodata, like
+.rodata.str1.8 and .rodata.str1.1. Also read these sections
+* generate reports for display in the GUI. Adapt GUI to read these files.
+
+2013-03-11
+* better handle archives with the same version number but different contents in
+batchextractprogramstrings.py
+* don't (re)write JAR files if nothing has been aggregated
+* pass tags to programscans
+* fix busyboxversion.py, standalone invocation was broken
+* simplify setting temporary dir option
+* check if a statically linked ELF file happens to be a Linux kernel. If so,
+ignore the blacklist and tag it as a Linux kernel.
+* rewrite scanned strings for Linux kernels: chop off generated code like <c>,
+<d> and <\d+> for debug messages that appear through the code in the kernel.
+This increases fidelity for the Linux kernel a lot.
+
+2013-03-10
+* move topleveldir creation to bat/bruteforcescan.py
+* add new option tmpdir to set path of temporary file creation
+
+2013-03-09
+* extract values of EXPORT_SYMBOL* from Linux kernel source and store them.
+These can later be used by ranking.py if there is a kernel image packed as an
+ELF executable.
+* start on extra sanity checks for batchextractprogramstrings.py to better
+deal with duplicate versions which might or might not actually be duplicates.
+
+2013-03-06
+* check whether or not input for generating version charts is an empty list.
+* update dedexer to 1.25 to have better support for ODEX
+
+2013-03-05
+* determine whether or not a ZIP file has a comment field.
+* fixes for pretty printer: ignore unpackreports that have been removed, like
+class files in the Java aggregator
+* fix return type for findlibs.py
+* crude fix for ZIP comment fields. Needs proper fix later, but hey, seems to
+work so far
+* ignore synthetic methods in Java class files
+
+2013-03-04
+* assign results of aggregate scans (if any) to the top level element.
+* merge remaining part of generateuniquehtml.py into generatereports.py,
+remove generateuniquehtml.py
+* add support for pack200, not enabled by default, since I first need to
+figure out how to easily add a dependency on openjdk without version names.
+
+2013-03-03
+* deduplicate data for unique matches stored in results for JAR files. In some
+cases this is a HUGE save (96% in size in some of my test cases).
+* deduplicate data for unmatched strings stored in results for JAR files.
+* generate unique string matches html report files in aggregate scan after
+deduplication
+
+2013-03-02
+* extract pickles for generating images in parallel
+* add storedir and other configuration directives to aggregate scans
+* remove rankimages.py from configuration
+* create workaround for weird ZIP files
+* add aggregate scan for finding duplicate files. Reporting still needs to be
+added.
+* add more license markers
+
+2013-03-01
+* check whether or not file to be scanned actually exists
+* add tags for gzip compressed files
+* generate piecharts in parallel
+* start on extracting pickles in parallel
+* start on deduplication of report generation
+
+2013-02-24
+* don't scan identical JAR files in aggregatejars.py in parallel: it could
+lead to race conditions when writing the result file, plus also costs more
+time scanning.
+* add code to optionally remove results of .class files after aggregating JAR
+results. This saves time generating pictures for individual class files, which
+might not be very interesting.
+
+2013-02-23
+* add identifier for UPX
+
+2013-02-21
+* let aggregatescans check unpackreports instead of leafreports for tags in
+sanity checks
+* add priority for aggregatescans
+* parallellise aggregatejars.py
+* start on deduplicating generating images
+
+2013-02-20
+* use clearer variable names in generateuniquehtml.py
+* don't dump configuration as part of scandata.pickle, but copy the original
+configuration file into the result archive
+* fix blacklisting for CPIO
+* update busybox scanning to also support 1.21
+* use cloning database for C variable names
+* fix blacklisting for ranking, busybox and individual checks
+
+2013-02-19
+* remove dependency on PyXML
+* add caching database in ranking.py for C variable names
+* prevent empty directories being created by ext2 scan
+* start on deduplicating 'reports' from ranking scan: there is a ton of
+repetition in them, which takes up a lot of space in the on disk pickles,
+especially for large packages like the Linux kernel
+
+2013-02-18
+* prevent adding duplicates to report tarball
+* merge generatenameshtml.py and generateuniquehtml.py
+* fix sorting of scans
+* add some tags from leafscans to unpackreports
+* ignore files which don't have ranking results in generateuniquehtml.py and
+rankimages.py
+
+2013-02-17
+* ignore statically linked files in findlibs.py
+
+2013-02-16
+* determine size for gzip files, preventing false positives and scanning time
+* fix aggregate jars: use right index, prevent unnecessary storing of a ton of
+data
+* start moving 'tags' to unpackreports instead of the leafreports. This will
+require some tweaks to how the leafscans are run as well.
+
+2013-02-15
+* optimize RPM unpacking: use size from RPM header
+* don't read file in its entirety into memory in ranking, but use seek() and
+read() instead
+* remove dependency on fssearch in RPM unpacking
+* remove unused method in kernelanalysis.py
+
+2013-02-14
+* use caching databases for Java fields and class names. This saves a ton of
+time (especially fields)
+* copy results more efficiently, which was a problem when there were lots of
+result files
+
+2013-02-13
+* prevent some scans for running on ELF files
+* remove false positives from LRZIP unpacking
+
+2013-02-12
+* fix ELF tagging in prerun.py. This prevents LZMA unpacking from being called
+needlessly.
+* write results of leafscans to disk earlier and don't keep them in memory
+until the very late end. Rewrite everything (except the GUI) that uses the old
+notation. This saves a significant chunk of memory (90% in some of my test
+cases) which makes it less likely swap is used, which just kills performance.
+
+2013-02-10
+* don't store unneeded data in scans that don't need it
+
+2013-02-07
+* merge caching databases, decluttering configuration a bit
+* add conversion script to merge databases
+
+2013-02-06
+* if available use precomputed scores
+
+2013-02-05
+* store variable names more efficiently
+
+2013-02-04
+* cleanup for LRZIP unpacking
+* more sanity checks for ext2/3/4 unpacking
+
+2013-01-27
+* fixes for patterns in bat-code2html. There are many more variants out there
+than the original authors ever encountered.
+
+2013-01-26
+* add reimplementation of romfsck.c (which segfaulted), done in Python, with
+more sanity checks.
+
+2013-01-21
+* add configuration checker batconfigcheck.py to check validity of
+configuration files
+
+2013-01-20
+* update documentation for BAT 12
+* return more information in JAR file aggregator
+
+2013-01-19
+* expand function name reporting and display in the GUI
+* move sanity checks from various methods in ranking.py to top level methods,
+plus document the sanity checks.
+* check whether or not old format databases were used
+* load cloning database in memory to prevent accessing the cloning database
+many times.
+
+2013-01-18
+* remove more duplicate code from ranking.py
+* merge some reporting modules
+* add very basic reporting for function names
+
+2013-01-17
+* add more sanity checks in fwunpack.py, unpackrpm.py and ranking.py
+* add cleanup for postrunscans. This is to help prevent scans from leaving
+results that could possibly be packed into the result archive during a later
+scan.
+* create version charts for function names (not used in the version yet)
+* sort versions with the same amount of hits in version charts for strings
+* remove unused option from bruteforce.py
+* remove duplicate code from ranking.py
+* shrink size of top level pickle file
+* fix rewriting of leafreports now that they are first copied with deepcopy()
+
+2013-01-12
+* merge reports of individual class files in Java aggregate scan
+
+2013-01-11
+* add extra sanity check for romfs unpacking. romfsck sometimes segfaults if
+the romfs is not valid. By doing a few header checks in advance we can avoid
+these.
+* return data from ELF aggregate scan
+* display data from ELF aggregate scan
+* guess a size for Atheros LZMA squashfs variant using -s option for
+bat-unqsuashfs-atheros. This prevents individual inodes from being unpacked
+using LZMA or other methods, reducing false positives.
+* switch order in which ralink and atheros variant of squashfs are run
+* return results in correct format for byteswap method
+* change priority for XOR 'decryption'. The scan is still not enabled by
+default due to likely scan recursion.
+* 7z unpacking might only partially succeed, leaving files in the directory so
+they need to be removed.
+* expand Java aggregate scanning.
+
+2013-01-10
+* fix JFFS2 unpacking which would fail if we would somewhere find just a
+single inode outside of a JFFS2 file system
+* if we hardlinked files, then modified them, we ended up modifying the
+original copy of a file too. Introduce a flag 'modify' that can be used to
+signal that the file should be copied instead. Apply this fix to batxor.py.
+* expand ELF checks in prerun.py
+* expand dynamic libs scanning: guess libraries from sonames, extract and
+compare variables
+
+2013-01-09
+* start on verifying whether or not combinations of libraries and executables
+in an archive (like a firmware) will work, by resolving symbols extracted from
+dynamic sections of ELF files.
+
+2013-01-08
+* extract extra information from Java and C binaries
+* display extra information from Java and C binaries in GUI
+
+2013-01-07
+* extract and report function names for Java class files and Dalvik dex files.
+* write reports as gzip compressed tar instead of uncompressed tar
+* squash licenses: if Ninka and FOSSology agree we have a lot stronger
+evidence and so this should be reported.
+* report Ninka and FOSSology licenses separately in the GUI
+* record unmatched strings for later reporting
+* don't complain about missing configuration in the GUI when navigating
+'string matches', only when 'unique://' links are clicked and the
+configuration was not loaded.
+* display unmatched strings in the GUI
+
+2013-01-06
+* add a workaround for ranking if we have packages A and B (or more) where A
+is contained in B but we're actually looking at the smaller package A and not
+at the larger package B. If we have no unique hits at all, we will report A,
+instead of B.
+* rename BAT_FUNCTIONNAME_CACHE, to BAT_FUNCTIONNAMECACHE_C, since we want to
+scan for method names for Java too
+* add some more data to clonedbinit.py
+
+2013-01-05
+* tag statically linked elf files and display them in the gui
+* tag version 11.0
+* add more examples to clonedbinit.py
+
+2013-01-04
+* rename more databases in ranking.py
+* licenses database now needs to be specified separately
+
+2013-01-03
+* give extra hints to squashfs unpacking, so it is possible to do better
+filtering.
+* don't overwrite picklefile if it already exists. This was causing display
+issues in the GUI, since some information would be lost.
+* add strings of renamed packages together to increase accurace in ranking.
+Uses a new configuration BAT_CLONE_DB
+
+2013-01-02
+* fix loop packing results in ranking.py that potentially has a big
+performance impact
+
+2012-12-30
+* change name of some databases in ranking code: remove "SQLITE_" to make
+things a bit less verbose.
+
+2012-12-29
+* change default setting for multiprocessing to 'yes'
+
+2012-12-27
+* BAT 10.0 released
+
+2012-12-16
+* batchextractprogramstrings.py: distribute tasks over available workers
+differently to make it less likely that one worker gets all the big tasks.
+
+2012-12-15
+* bat/fwunpack.py: let unpackFile handle lengths properly, only when offset ==
+0. Only used in ZIP unpacking at the moment.
+* fix ZIP unpacking in case there is a single ZIP file, with trailing data.
+* add script to regenerate LIST from a database. This is convenient in case
+the analysis needs to be rerun (due to errors in scanning, crashed harddisk,
+etc.)
+* change parameters for verifylist.py
+* extract a lot more info in batchextractprogramstrings.py
+
+2012-12-14
+* support 'temporary' files in bruteforcescan.py. This is needed for XOR
+'decryption'.
+* add a preliminary implementation of XOR 'decryption'. There is a risk of
+getting into an endless loop, so the scan is disabled by default.
+* deduplicate postrunscans
+
+2012-12-10
+* add another variant of squashfs where only the identifier was changed. Code
+is a bit inefficient and could use some cleanups.
+
+2012-12-08
+* add variant of generatelist.py that reads a directory full of SRPMs,
+extracts the source code from the SRPMs, copies them to a directory and
+generates a LIST file for the extracted sources.
+
+2012-12-07
+* split database into three databases (because of space contraints):
+  - master database
+  - licenses/copyrights database
+  - ninkacomments database
+In BAT 11.0 this will become the standard layout used by ranking.
+
+
+2012-12-05
+* sanity checks in batchextractprogramstrings.py to make sure there are
+warnings if license/copyright scanning is enabled, but FOSSology does not
+work (because PostgreSQL has not been started).
+* remove unnecessary column from ninkacomments database, fix spello in name of
+index
+
+2012-11-30
+* rewrite fossology scan for nomos to scan more files at once. Chunks of 10
+seem to work best according to some very unscientific testing.
+
+2012-11-29
+* add script to verify format of LIST files as generated by generatelist.py.
+This is useful if these files were manually edited for correctness.
+
+2012-11-28
+* extra sanity check for existence of database table in bat/ranking.py
+* update database creation to work with FOSSology 2.1.0.
+* extract copyrights (currently only e-mail addresses and URLs) using the
+copyright agent from FOSSology.
+* store other copyright statements. There is quite a bit of bogus data in
+there, so we probably need an extra step to clean up.
+
+2012-11-26
+* remove non-functioning code from bat/images.py and replace it with
+configuration options
+* remove unused code from bat/bruteforcescan.py
+* remove unused code from bat/fwunpack.py
+* start on verifier for PE executables
+
+2012-11-25
+* rename bat/bruteforce.py to bat/bruteforcescan.py to avoid nameclashes.
+Actually bruteforce.py should be renamed as well.
+
+2012-11-22
+* fix error in bat/bruteforce.py: actually use the checksum instead of the
+size, which could have lead to misclassifications
+* add configuration option 'outputlite' to make smaller archives (without a
+dump of all data)
+* add simple verifier to tag Java JAR files (incomplete and needs more sanity
+checks)
+* add extra sanity check for yaffs2 unpacking
+
+2012-11-21
+* fix errors in database creation script, add preliminary blacklisting
+capabilities.
+
+2012-11-16
+* rewrite leafscans to return a dictionary instead of a list of dictionaries
+
+2012-11-13
+* support "noscan" and "scanonly" for postrunscans, for as far as applicable
+
+2012-11-12
+* fix config initialization bug in batgui
+* add extra sanity checks in XZ unpacking based on 'streamflags'
+* significantly rework XZ unpacking to make it more sane
+* introduce 'scanonly' to filter out scans. This is complementary to 'noscan'
+
+2012-11-11
+* allow multiple values in 'storetype'
+* display licensing information in GUI
+* XZ unpacking cleanups
+* condense filenames in generateuniquehtml.py for easier display in GUI
+* assume .txx files are C files
+
+2012-11-10
+* stop processing XZ files as soon as all possible XZ files have been extracted.
+* put extracted XZ files in blacklist
+* use xz -l instead of xz -t for faster testing.
+
+2012-11-04
+* also store line numbers for function names
+
+2012-10-31
+* introduce new configuration parameters for postrunscans to store results in
+a more generic way. Rewrite data dumping routine to take advantage of this.
+
+2012-10-30
+* parallellise more in database creation script
+* add some more granularity to scanning in parallel
+
+2012-10-17
+* parallellise more in database creation script
+
+2012-10-14
+* fix multiprocessing code in database creation
+* add script to mass rename packages in the database
+
+2012-10-13
+* make better use of multiprocessing in database creation
+
+2012-10-12
+* split creation of images into a generic part and a part for ranking
+* add simple script to verify integrity of database
+
+2012-10-03
+* clear old results when opening new results file
+* release BAT 9.0
+
+2012-09-24
+* add extra sanity check to prevent ext2 unpacking from barfing after
+identifying non-ext2 images as ext2
+
+2012-06-27
+* fixes to allow batgui to run on Linux systems that don't have BAT installed
+
+2012-06-25
+* add missing dependencies to RPM file
+
+2012-05-31
+* add warning if htmldir is not set
+
+2012-05-24
+* fix ranking method for corrupted ELF files. It is not as accurate as the
+usual methods we use for ELF, but better than nothing...
+
+2012-05-23
+* fix in GUI for fifo files
+
+2012-05-22
+* add 'debug' statement for helping debugging
+* make location of HTML files for viewer more configurable. This needs more
+work.
+* htmldir can now be set on the fly by loading a new configuration
+* tag and release 8.0
+
+2012-05-21
+* extra sanity checks for BAT_REPORTDIR
+* add wrapper code for scanning Minix v1 file systems
+* add configuration for scanning Minix v1 file systems
+* pass blacklists to forges and licenses checks
+
+2012-05-20
+* add first version of minix unpacker to bat-extratools
+
+2012-05-15
+* files can have multiple symbols in the file tree, so make it easier to add
+more symbols and decorate the file tree
+* sort file tree
+* decorate Android files in file tree
+* big file fixes (finally!) for cramfs and cab unpacking
+
+2012-05-14
+* split data dump method, so it can be reused in the GUI more easily
+* save data from scan in GUI
+* rename "ranking" dir to "filereports", since it is far more accurate
+* keep focus on selected file after applying filters
+* keep data in tabs if selected file has not changed. Especially if there are
+lots of matches, or large files in advanced mode this will save unnecessary
+waiting.
+* gzip unique html reports to decrease unpacking time in GUI + update GUI
+* select scans from GUI
+
+2012-05-13
+* load scan configuration via the menu too
+* display tags in GUI
+* portability fixes, add stubs for scanning directly from interface
+* launch scans via interface and display results in interface. Still to be
+added: saving results, plus better filtering of scans
+
+2012-05-12
+* don't show scanning menu for non-Linux systems
+
+2012-05-11
+* cut more data from scandata.pickle that is not used in the GUI
+* add very conservative tagger for GIF files
+* add filter to hide (seemingly) empty directories
+* portability fixes in batgui
+* add list of scans from configuration file (if specified) to checkbox menu
+
+2012-05-10
+* move bruteforce scanning functionality to separate file in 'bat'
+subdirectory. This will make it a lot easier to make other front ends for BAT,
+for example GUI or networked service. Rework top level bruteforce.py to
+reflect change.
+* move some functionality that is likely not to be used much in GUI to
+"advanced mode".
+* unpack files that are only needed in advanced mode on the fly instead of
+always. This significantly reduces waiting time when opening an archive for
+viewing in "simple" mode
+* enable "advanced mode" in GUI
+* add more filters (resources, PDFs) to GUI
+
+2012-05-09
+* write original ranking dump data to separate pickle files. This data is
+not used in the GUI directly and is just wasting memory and CPU time.
+* adapt GUI to reflect change in dump data format. Also don't unpack
+'ranking' directory with new pickle files: they are not used and unpacking
+takes time.
+* construct file tree from scandata.pickle instead of walking the data
+directory from the dump
+* enable interactive filtering of file types via menu
+
+2012-05-08
+* add filtering capabilities to GUI
+
+2012-05-07
+* fix edge case in Java deserialisation
+* add function name match reporting to GUI
+
+2012-05-06
+* enable function name scanning in ranking method
+* fix and enable gzip verifier in prerun.py
+
+2012-05-04
+* introduce LZMA_MINIMUM_SIZE parameter to set minimum size of results of for
+LZMA unpacking. This is to reduce false positives.
+* add simplistic verifier for ELF files. This is to reduce false positives in
+LZMA scanning.
+
+2012-05-03
+* rework bruteforce.py so it is easier to make different frontends
+* introduce "enable" configuration directive. This will make it easier for a
+graphical frontend to enable/disable checks
+
+2012-05-02
+* add very simplistic verifier for MP4 files to reduce false positives
+further. Only works on a subset of files for now
+* add first version of a graphical viewer of results made with BAT
+* add stubs for extra method for scanning dynamically linked binaries, by
+searching for function names. Prepare rest of the code for the change.
+
+2012-04-24
+* tagging 7.0
+
+2012-04-18
+* set a maximum size for picture generation: if file is bigger than a certain
+size no picture ("tv static") will be generated.
+* outcomment code for generating thumbnails for now
+* set a maximum size for hexdump generation: if file is bigger than a certain
+size no hexdump will be generated.
+
+2012-04-17
+* replace glob.glob() with our own filtering. This prevents os.listdir() from
+being called numerous times
+* very simplistic check for tagging Ogg files, needs vorbis-tools.
+
+2012-03-29
+* add a very simplistic method to tag binary XML for Android (file name check,
+plus the first four bytes)
+
+2012-03-26
+* add tool to check whether or not a binary + libraries can be combined at
+runtime
+* replace piechart generation using external script and pychart with
+matplotlib. It's faster, doesn't require an external script and better fits
+the license.
+
+2012-03-24
+* remove unused and no longer maintained file
+
+2012-03-21
+* pass size hints, if available
+
+2012-03-19
+* also pass top level scan directory to postrunscans
+
+2012-03-18
+* add code to determineinformation about correlation between packages for
+non-unique matches.
+
+2012-03-11
+* move the unpacking to a directory called 'data'. Dump the state of the
+program in a pickle so it can be read back for later use.
+* remove hardcoded paths from the data that is pickled. This makes it easier
+to relocate the results for future processing.
+
+2012-03-08
+* add script that uses hexdump -Cv to generate files to be used in a GUI. It's
+faster than writing our own.
+
+2012-03-01
+* revive knowledgebase idea, but now as a pretty printer
+
+2012-02-28
+* make pretty printer configurable
+
+2012-02-27
+* rework BusyBox configuration extraction: some things could be done a lot
+easier and also give better results.
+* add romfs unpacking using romfsck. Not enabled by default, since it needs
+some more cleanups
+* add romfsck to bat-extratools
+
+2012-02-26
+* work around standard behaviour in xgettext that caused strings to be not
+extracted
+
+2012-02-24
+* split caching database per language family
+* determine version based on strings extracted from the binary
+* determine licenses based on strings extracted from the binary plus a large
+database of licenses extracted from source code using Ninka
+
+2012-02-23
+* start moving maintenance scripts into the 'maintenance' directory
+* add code to generate images of files
+
+2012-02-22
+* add plugin that queries a database with packages extracted from sources from
+distributions
+
+2012-02-21
+* several cleanups, remove unnecessary calls and conversions
+
+2012-02-19
+* correctly process scans that don't define "noscan"
+* introduce environment variable to indicate whether or not there is a fully
+generated caching database
+* inline some code in ranking.py, reducing memory consumption
+
+2012-02-18
+* pass environment variables to XML pretty printing methods
+
+2012-02-15
+* remove use of dynamic symbols in ranking.py, to decrease false positives
+
+2012-01-30
+* add uncompression of compress'd files
+* tagging 6.0
+
+2012-01-23
+* avoid duplicate license scanning
+
+2012-01-22
+* actually make a copy of the environment, to prevent "Argument list too long"
+errors
+
+2012-01-20
+* determine the size of JFFS2 file systems
+* remove limit of JFFS2 scanning (whole file). JFFS2 file systems can now also
+be carved from the middle of a file.
+* return order in which identifiers are found. This is not yet used.
+
+2012-01-19
+* big file fixes for byteswapping
+* rework identifiers for .exe files
+* big file fixes for PDF files
+
+2012-01-16
+* add lrzip unpacking
+* enable cramfs checking by default
+* add another squashfs variant (from DD-WRT)
+
+2012-01-14
+* prepare for 6.0 release
+* fix bugs in RPM unpacking
+
+2012-01-13
+* further preprocess strings that go into the database. Specifically we split
+on strings that 'strings' will split on when reading a binary file
+* remove control characters in escaped form at the start of a string
+* make multiprocessing configurable in the configuration
+
+2012-01-10
+* don't run leaf scans on duplicate files. Instead run the scans just once and
+recombine the results later.
+
+2012-01-09
+* don't unnecessarily run program scans and postrun scans if none are defined
+in the configuration
+* only pass the configuration of the program scans to the program scans. This
+can save a lot of memory for big runs.
+
+2012-01-04
+* add infrastructure for postrun scans
+
+2012-01-03
+* parallellise unpacking. Hardcoded to 1 worker for now.
+* big file improvements for lzip, lzo and 7z unpacking
+
+2012-01-01
+* change copyright statements
+* extract strings from JavaScript files too
+* sort scans for leafs first, so big files are scanned first
+* send tasks to the pool in chunks of size 1, so each process in the worker
+pool runs for roughly the same time.
+* fix an error in the ranking code, which significantly speeds up the
+algorithm...again
+* tag bz2 and gzip files
+
+2011-12-31
+* parallellise leafscans. Especially when ranking is enabled this pays off a
+lot and shaves off another 30% of runtime (even more if caches are hot). It
+seems to be faster even when there is only one worker process in the pool. There
+is one caveat: this will only work correctly if the caching database for the
+ranking scan has been *FULLY* generated, or else it will try to write to the
+database, which could lead to errors. The default process is therefore
+hardcoded to 1, but this will be made configurable in the near future.
+
+2011-12-28
+* for some ext4 file systems tune2fs needs 8192 bytes to run correctly
+2011-12-27
+* unpack scans also can return tags
+
+2011-12-25
+* select scans based on the actual offsets that were found. Also make sure
+that scans for which magic was found at offset 0 are tried first.
+
+2011-12-24
+* add a very simple verifyGraphics pre-run scan. Right now it only verifies if
+a file is a JPEG file.
+* always run the marker search program and no longer as an optional pre-run
+scan. This also simplifies the other pre-run scans a bit.
+* only run the marker searches for the magic types that are defined in the
+configuration. This speeds up scanning a tiny bit.
+* move code outside of loops in ranking scan, slashing runtime with an
+additional 60%.
+
+2011-12-23
+* stubs for adding a 'noscan' directive that scans can use to say which
+category of files they don't want to scan.
+* move pre-run scans to separate file
+* pre-run scans can return a list of tags. Right now it is just file type, but
+they could be anything. The contents of the list of tags is compared to the
+value of 'noscan' in the configuration file. If a tag can be found in the
+'noscan' list, the scan is skipped. This way we have a fine grained model to
+enable and disable scans for specific files.
+* add prerun scan for verifying if a file consists of just printable text
+characters
+
+2011-12-22
+* add extraction of PDFs
+
+2011-12-21
+* speedups in creation of temporary strings cache, which reduces runtime
+vastly.
+* enable new variant (realtek) of squashfs+lzma
+
+2011-12-20
+* avoid duplicated rows in the strings cache database for ranking. This can
+save quite a bit of space.
+
+2011-12-19
+* for each file first determine it is a valid XML file, so other methods no
+longer need to scan it. This is especially to prevent the ranking method from
+scanning these files.
+* add yet another squashfs+lzma variant to bat-extratools
+
+2011-12-18
+* rework extraction of ELF sections from ELF binaries. Just using 'strings'
+got too many strings. The previous version of the extraction of the right
+sections (using readelf -p) did not work, because readelf -p ate leading tabs
+and converted them into spaces, so sometimes some strings were not matched
+properly. Now we first cut the right ELF sections from the binary, then use
+strings on the temporary binary, which gives much better results.
+
+2011-12-17
+* filter out scans we don't need to run anyway, removing the need to
+dynamically load and eval() the code
+* big file improvements for ICO scanning
+* rework unpack scans: no longer return offsets, since only one of the prerun
+scans scans for/alters those.
+* ranking: if none of the strings we have for gains is significant enough we
+should stop processing
+* ranking: fix bug where only one result per string was fetched, which led to
+vastly incorrect results.
+
+2011-12-15
+* big file improvements for squashfs, ARJ and ar
+* simple scanner that looks for presence of strings that might indicate the
+code was from a forge, like sourceforge or code.google.com. In the future it
+might be good to use the scanner from FOSSology for this.
+* very simplistic scanner for scanning for a few license identifiers. This is
+*not* meant to obtain proof that a program is under GPL, just as an indicator
+for further investigation.
+
+2011-12-14
+* big file improvements for lzma, serialized Java, RAR and ZIP
+* replace using output of libmagic for determining device files, sockets, etc.
+by using standard Python functionality
+* big file improvements: use hardlinks instead of shutil.copy(). This will
+give us some more improvements, since files don't need to be copied around.
+
+2011-12-13
+* stop unpacking a file when the whole file has been blacklisted
+* remove duplicate code in bruteforce.py
+* unpackGzip: don't read in a file and then write it out again if it is the
+same data, but use shutil.copy() instead. Also write files out with dd instead
+of reading the data ourselves. It is a lot more efficient. Finally don't read
+the output of zcat, but write it to a file directly. This really pays off in
+the case of big files.
+* don't read in the file at once when determining the hash, because this will
+be very resource intensive for large files.
+* unpackTar: like unpackGzip: don't read a file, but use shutil.copy() and dd
+instead. This pays off with big files.
+* big file improvements for byteswap and iso9660 scanning, plus fix dd command
+for gzip and tar
+* big file improvements for ext2
+* big file improvements for bzip2
+
+2011-12-12
+* add another squashfs+LZMA variant (for Atheros devices) to bat-extratools
+* add unpacking for squashfs+LZMA variant for Atheros devices to squashfs
+unpacking
+* rework code for unpacking files that contain multiple zip files, almost done
+* add workaround for certain files that contain multiple zip files. This
+works for now, but it might be that we will need additional fixes in the
+future.
+* fix ranking bug that was triggered when there was a blacklist active
+* fix unpacking code for unsquashfs (openwrt, lzma). When unqsuashfs tried to
+unpack and tried to create inodes the scan thought unpacking had failed while
+it was in fact successful.
+
+2011-12-11
+* if unyaffs seems successful, but actually does not unpack any data, it is
+unsuccessful, so treat it as such.
+* if zipinfo is unsuccessful we should bail out
+
+2011-12-10
+* add unpacking for 7z files, only when 7zip header can be found at offset 0,
+until figured out what's safe (7z can unpack a lot more)
+
+2011-12-08
+* rework unpacking for GIF
+* don't always create a temporary directory for 'byteswap', only when
+necessary
+* rewrite cramfs unpacking to new style
+* don't try to unpack encrypted ZIP files
+
+2011-12-07
+* add unpacking for executables packed with UPX
+* rewrite tar unpacking to standard format
+* add extraction of PDF meta information using pdfinfo
+
+2011-12-06
+* enable yaffs2 unpacking
+
+2011-12-05
+* remove unused database
+
+2011-12-01
+* don't follow symlinks for chmod
+* unsquashfs from openwrt with lzma cannot unpack to an existing directory, so
+use an extra directory to work around that limitation
+* add alternative LZMA identifier that is sometimes used in OpenWrt, rework
+LZMA unpacking to work with multiple identifiers
+
+2011-11-25
+* add jdeserialize to bat-extratools
+* add unpacking for Java serialized files using jdeserialize
+
+2011-11-01
+* treat Groovy files as Java
+* treat JSP files as Java
+
+2011-10-30
+* add dedexer to bat-extratools
+
+2011-10-21
+* add field 'envvars' to pass around extra information to scans. These should
+be put into the environment in some cases (ranking scan)
+
+2011-10-20
+* add string constant extraction for Dalvik files, using dedexer. This needs
+to be added to bat-extratools
+
+2011-10-19
+* add string constant extraction for Java class files, so we can do better
+matching in the ranking code for Java.
+
+2011-10-18
+* release version 5.0
+* release first version of bat-extratools, keep it in sync version wise with
+BAT
+
+2011-10-17
+* RPM specfile fixes
+* enable squashfs variants, plus fix bug in Squashfs LZMA (Broadcom variant)
+* add Squashfs LZMA (slax.org/Ralink variant)
+* add Debian package installation files for bat-extratools
+
+2011-09-25
+* add more documentation to the user guide
+
+2011-09-24
+* update version of Ninka that's used, also scan with FOSSology by default.
+* scan .qml files and treat them as C
+
+2011-09-23
+* add unpack ZIP files to batchextractprogramstrings.py
+
+2011-09-22
+* add more sections to the user guide
+
+2011-09-21
+* started work on incorporating snippets of documentation into a comprehensive
+user guide, giving it a much needed quality boost as well.
+
+2011-09-20
+* finished SWF unpacking. Right now it is assumed that the entire file is a
+flash file and it's compressed.
+
+2011-09-19
+* finished JFFS2 support
+
+2011-09-18
+* start on JFFS2 unpacker that uses output from jffs2dump and carves the right
+bits from the JFFS2 file. Far from finished, still needs work.
+
+2011-09-17
+* add stubs for unpacking of SWF files
+* add mapping from extension to language as used in the database
+
+2011-09-10
+* if we have ELF files we can do a much better job at getting the strings from
+the binary by just looking at a few sections which we can get using readelf.
+All other files are still checked using the old 'strings' method.
+
+2011-09-06
+* rework splitting \r because it didn't work for various reasons. Also, we are
+actually right now just interested in getting rid of \r\n in HTTP code.
+
+2011-09-05
+* add unpacking for base64 encoded files. This will not always work, because we
+can't determine where a base64 encoded starts or ends.
+* split at \r, similar to \n. The 'strings' command will split at either and
+so should we to get better matches.
+* remove double quotes before putting strings in database in case we are
+processing a multiline msgid
+* report amount of unique strings for ranking scan
+
+2011-09-04
+* add experimental virus scanning method using clamscan, just for Windows
+executables
+* fix offset for RAR endofarchive variable
+* rewrite Zip processing code to new format. For some reason this was not done
+yet :-/
+* also rewrite RAR processing code to new format. For some reason this was not
+done yet :-/
+
+2011-09-02
+* fix bugs in extraction code using xgettext
+* store line numbers for extracted strings. This might come in handy in future
+reporting.
+
+2011-08-29
+* ignore strings that will not significantly contribute to a score in the
+ranking algorithm. This speeds up the algorithm by vast amounts.
+
+2011-08-27
+* add unpacking ar archives, such as Debian packages
+
+2011-08-24
+* replace homebrew string extraction code with a call to xgettext. It's
+cleaner and gives better results. A small wrapper around it to parse output is
+all that was needed.
+
+2011-08-08
+* fix InstallShield unpacking
+* rewrite ARJ unpacking to new style unpacking
+
+2011-08-07
+* unpack .ico files
+* start on unpacking InstallShield files. Unfortunately we can only process a
+subset of files, because "unshield" can't process all files.
+
+2011-08-02
+* add scanning for ISO9660 file systems. Still need to determine the size of
+the file system for the blacklist. This functionality needs FUSE and fuseiso.
+
+2011-07-31
+* move the RPM unpacking to an external file so BAT will not fail on systems
+where there is no RPM Python and where unpacking RPM has been disabled.
+* add identifiers for ISO9660
+
+2011-07-26
+* add mergeBlacklist method to merge sections in blacklists that overlap.
+
+2011-07-25
+* fix copyright statements
+* remove more duplicate code from bruteforce.py
+* move dynamic library scanning to a separate check
+* move architecture scanning to a separate check
+* fix cramfs scanning
+
+2011-07-24
+* finish ranking method from MSR 2011 paper, except reporting
+* remove (some) duplicate code from bruteforce.py
+
+2011-07-17
+* don't barf if we can't generate a proper LIST for the batch extraction
+program
+
+2011-07-16
+* start on reimplementing ranking methods from MSR 2011 paper
+
+2011-07-10
+* introduce generic method to create directories with the right names
+* rewrite most search* methods to use the prescanned offsets
+
+2011-07-09
+* (partial) rewrite to use seek() and read() for searching offsets instead of
+first reading the entire file and then find()
+* start on generic marker search, so we only have to read a file once, instead
+for every 'unpack' scan we want to run
+
+2011-06-19
+* ugly byte swapping hack for Realtek RTL8196C based routers
+
+2011-06-03
+* start working on crawlers to help maintain archive of source code files that
+are needed to create knowledgebases
+
+2011-05-31
+* add support for lzo unpacking
+
+2011-05-30
+* rework SquashFS code
+* add length checking for cramfs for blacklisting
+
+2011-04-28
+* partially integrate preliminary support for extracted assemblies for
+installers for Microsoft Windows
+
+2011-04-27
+* start on extracting XML descriptions from Windows installers so we can make
+better guesses as to which program to use to unpack the data
+
+2011-04-03
+* add extra ext2 sanity checks to vastly speed up scanning
+
+2011-03-26
+* add proper ext2 unpacking
+* add unpacking with unsquashfs with LZMA from OpenWrt
+
+2011-03-14
+* introduce wrapper for squashfs, so we can easily add other squashfs
+unpackers too, plus fix some cleanup bugs for unpackSquashfs
+
+2011-03-13
+* add PNG unpacking
+* fix tempdirs for ext2 unpacking
+
+2011-03-06
+* rework leaf scans to properly use blacklisting
+* reenable ext2fs scanning
+
+2011-03-05
+* fold walktempdir() into scan()
+* remove some clashes between names of variables and built-in function for
+clarity
+
+2011-03-04
+* rework GIF scanning so we don't unnecessarily loop: merge searchUnpackGIF
+and unpackGIF, add extra checks.
+
+2011-03-02
+* first copy the file to scan to the temporary scanning directory
+* start on reworking hierachical unpacking which will make it easier to find
+where and how things were unpacked.
+* add more hierarchical unpacking
+* unpack squashfs to the temporary directory directly, without having
+unsquashfs create the 'squashfs-root' directory
+* add speedups for GIF images, also fix a few indexing bugs, argh.
+
+2011-02-28
+* add a 'noscan' attribute for directories that don't need extra 'unpack'
+scans for its contents
+* add 'noscan' for unpacking GIF
+* reenable GIF
+
+2011-02-27
+* disable GIF scanning due to endless looping. We should start marking certain
+files as 'noscan' to avoid looping.
+* add giflib-utils as a dependency for the RPM
+* rework blacklisting, so we don't overload the datastructure for passing on
+the results.
+* remove Dutchims
+* add yaffs2 unpacking, not enabled by default
+
+2011-02-26
+* don't exclude files to scan. The unpack scripts should be able to handle
+this nicely.
+
+2011-02-25
+* don't clear the blacklist by accident
+* start on extracting GIF images
+* add extraction of GIF images
+* fix another bug in blacklisting
+
+2011-02-23
+* fix some bugs in unpacking RAR
+* rework scanning for EXE files. Currently only grabs files that can be
+unpacked with RAR.
+* add unpack7z for use in exe unpacking. Still need to rework generic 7z
+unpacking itself.
+
+2011-02-22
+* rework unpacking for CAB
+* give 7zip more priority than other scans such as CAB to prevent duplicate
+scanning
+* add blacklisting to 7z. This is very crude and needs to be reworked.
+
+2011-02-21
+* add unpacking for ARJ
+* fix small bug in ubifs searching
+
+2011-02-20
+* fix XZ unpacking
+* fix unsquashfs unpacking encountering a sqsh we can't unpack yet
+
+2011-02-18
+* change upperbound of blacklist checking from <= to <
+* add lzip unpacking
+
+2011-02-16
+* add search method for XZ footer
+* make lzip a dependency for the RPM
+* start on XZ support. This does not yet work, so don't use.
+* rework cpio unpacking slightly. There are still a few logic errors here that
+need some love.
+
+2011-02-15
+* use 'file' to determine the size of squashfs file systems.
+* introduce "genericSearch" and rewrite all checks in checks.py to use
+genericSearch
+* add stubs for XZ support
+* small comment fixes and removal from dead code
+* add stubs for lzip support
+
+2011-02-13
+* only pass data between cpio header and trailer to the cpio unpacker.
+* start inlining methods in certain checks that don't have to be separate
+* inline more methods, merge a few checks into one file
+* add extra checks to cpio unpacking to ensure we are actually unpacking valid
+cpio archives.
+
+2011-02-12
+* add proper options to license scanning program
+* determine sha256 hashes for files scanned by license scanner
+* fix cpio searching bug, might break some runs at the moment
+* only license check certain files
+
+2011-02-07
+* move temporary directory creation into the while loop for
+searching/unpacking gzip files to prevent duplicate scanning. This should be
+done for other searches as well.
+* add stub for adding directories containing the names of the compression to
+make it easier to find things after a scan.
+* move temporary dir creation into the while loop for most other scans as well
+
+2011-02-06
+* implement priorities for scanning, get rid of looping over configuration for
+every scan, which was a bit silly.
+* remove looping over configuration in XML printing
+* small cleanups
+
+2011-02-04
+* add documentation for blacklisting
+* add blacklisting for individual program scans
+
+2011-02-03
+* add blacklisting for tar, cpio and RPM
+
+2011-01-30
+* don't scan block devices or character devices
+* don't enable ubifs, since I have not added the code yet :-/
+* add code to store the configuration globally
+* reenable ubifs
+* add unpacker for ubifs, currently does not work correctly, but unpacks too
+much. This needs to be fixed.
+* fix unpacker for ubifs. Needs testing with more real data.
+* remove temporary dirs in the bzip2 unpacker
+* add stubs for working with priorities, as announced on the mailinglist
+* make "config" global, eventually we will replace this with something else
+that should significantly clean up the code
+
+2011-01-29
+* add -d to cpio, so it actually creates directories
+* add unpacking RPMs. RPM contains a gzip file so we get some duplicates.
+* actually enable bzip2 in the standard configuration, sigh.
+
+2011-01-27
+* add stubs for using Ninka to get licensing information per file
+
+2011-01-26
+* return the type of the squashfs file system we find. We don't yet use the
+information, but eventually we will use it to choose the right unpacker for
+squashfs, and be able to add some more meta information about what kind of
+squashfs file system it is.
+* update the README, it was still very old (and still can use cleanups)
+* add mtd-utils-ubi as a dependency for the RPM (package name needs to be
+checked for DEB)
+
+2011-01-25
+* cleanups
+* add markers for ubifs (used a lot on Android)
+
+2011-01-24
+* (finally) add support for bzip2 archives
+
+2011-01-20
+* add option to switch between absolute and relative reporting of paths, to
+make unpacked files easier to find in /tmp after a scan
+* always report both absolute and relative paths, remove switch
+* unpack into a single directory, instead of scattering things over lots of
+directories in /tmp. This makes it easier to pack the results of a scan for
+later analysis.
+
+2011-01-17
+* add configuration for BusyBox 1.18.2
+* bump version number to 4.0
+
+2011-01-13
+* last PyLucene dependencies removed
+* rename name2program.py to program2package.py
+* add a hack to fix different paths for unsquashfs
+
+2011-01-07
+* various cleanups
+
+2011-01-06
+* various cleanups
+
+2010-12-28
+* make a configuration file for bruteforce.py mandatory
+* add configuration, plus default configuration, to bat.busybox.py
+* add documentation for generating RPMs
+
+2010-12-22
+* add configuration for BusyBox 1.18.1
+
+2010-12-20
+* remove dependency on PyLucene, replace with sqlite3
+
+2010-12-15
+* add configuration for BusyBox 1.17.4 and 1.18.0
+
+2010-10-19
+* bruteforce.py: change help message, since we can scan more than firmwares
+
+2010-10-18
+* busybox.py: exit printing an error when we can't find a version number
+
+2010-10-10
+* add configuration for BusyBox 1.17.3
+* change helptext for BusyBox config extraction script
+
+2010-10-08
+* iconv fixes, some extra comments
+
+2010-10-07
+* rename unpack types in the bruteforce configuration
+* replace per scan specific unpack elements with a generic "unpack" element, add
+type of unpack to a new element "type", which specifies the type.
+* extractprogramstrings.py: strip comments first, optionally run through
+iconv first, make regex more reliable
+* add public domain sed script that removes C/C++ style comments
+
+2010-09-15
+* store scanned strings to Lucene
+
+2010-09-13
+* start on a program to extract strings from sourcecode
+
+2010-09-04
+* add configuration for BusyBox 1.17.2
+
+2010-08-18
+* add configurations for BusyBox 1.17.0 and 1.17.1
+* fix README for appletname-extractor.py
+
+2010-06-17
+* add configuration for BusyBox 1.16.2
+
+2010-06-09
+* add preliminary support for cramfs (only tested with little endian cramfs).
+Some extra work is needed to get this to work (apply a patch, rebuild a tool),
+so it is disabled by default for now.
+
+2010-06-08
+* compatibility fixes for unzip 6.0
+
+2010-06-03
+* reinstate 'magic' attribute in the configuration
+* tool to extract information from the XML output and add it to knowledgebase
+
+2010-06-02
+* started work on a script to take the results from the output of the
+bruteforce tool and put the results into the knowledgebase
+
+2010-06-01
+* add a simple check for hostapd
+* add some more stubs for integrating the knowledgebase
+
+2010-05-10
+* add a simple check for wpa_supplicant
+* use data from the knowledgebase to report additional data
+* add a script to initialize a knowledgebase (sqlite) , as well as several separate
+scripts to maintain the knowledgebase
+
+2010-05-09
+* add a script for creating a knowledgebase and fill it with some test data
+
+2010-05-05
+* add simple checks for iptables, iproute, dproxy, ez-ipupdate
+* add simple check for libusb 0.1
+* add simple check for vsftpd
+* move documentation to the 'doc' directory
+* document adding new checks
+
+2010-05-04
+* small speedup for BusyBox (40 characters should be enough for the BusyBox
+version number)
+* stub for XML reporting for BusyBox, not yet used
+* cleanup fsmagic.py, add markers for cpio archives
+* add beginnings of tools to build and query a searchbase with a file name to
+package mapping, useful for quick sweep scanning
+* make the tool run silent by default (no reporting)
+* add reporting of bruteforce scanning in XML (enable with -x flag)
+* remove old text reporting
+* add infrastructure to have custom XML snippets printed for checks that don't
+fit the default XML reporting model
+* add unpack code for cpio, tar, Windows executables (cabinet archive files,
+7z), rar, zip
+* add code to determine architecture for ELF files
+* document code more
+
+2010-05-01
+* remove some calls to addDocument() in the extractkernel* scripts, since they
+are unnecessary. It also brings down the size of the Lucene indexes with about
+a quarter, and lets the scripts run a bit faster.
+
+2010-04-30
+* remove a marker string for U-Boot which falsely identified some instances of
+CFE as possibly U-Boot
+
+2010-04-27
+* add a check for loadlin, which you can still find in some embedded devices
+* speedup for BusyBox version extraction
+* speedup for Linux kernel version extraction
+
+2010-04-26
+* close files when we don't need them anymore. This prevents running out of
+limits for open files.
+
+2010-04-23
+* add more documentation for the bruteforce scanning tool
+
+2010-04-21
+* add first scan for U-Boot. More marker strings need to be added to make it more reliable.
+
+2010-04-18
+* remove wrong marker line for ALSA, leading to false positives
+* add LZMA decompression. This is not too reliable according to Debian bug #364260
+
+2010-04-17
+* add basic pretty printing
+* speedup scanning for BusyBox version number
+* Python 2.5 compatibility fixes (thanks to Brett Smith)
+* only check for module license strings in actual modules
+* return the correct offset for finding squashfs file systems
+* filter out more files, that are not immediately interesting, like HTML pages
+* add the kernel checks from the kernelanalysis script to the brute force scanner
+
+2010-04-16
+* add scan for RedBoot to brute force scanning tool
+* add scan for wireless tools to brute force scanning tool
+* add scan for dynamically linked libraries to brute force scanning tool
+* add scan for licenses in kernel modules to brute force scanning tool
+
+2010-04-15 - initial release

@@ -1,0 +1,498 @@
+This document describes how the database for BAT should be created.
+
+--------------------
+NOTE: currently the database creation scripts are under reconstruction
+(rewrite from sqlite to postgresql). This document describes the situation of
+how the scripts will be used after the rewrite.
+--------------------
+
+1. download sources
+2. install necessary tools
+3. create meta files
+4. start database server
+5. configure database creation script
+6. run database creation script
+7. find 'third party' code
+8. find 'clones'
+9. extra sanity checks
+10. adding Linux distribution specific information
+11. run CVE processor
+
+Appendix A: recreating an existing database
+Appendix B: database design
+
+
+1. Download sources
+-------------------
+
+First you need to download sources. How to do this is out of scope of BAT.
+Downloading can be done using a crawler, or by hand. You should store these
+files in a directory. It is recommended to create one directory per "origin"
+(for example: Linux kernel, KDE, etc.).
+
+Linux distributions, like Debian, are a good start to get all the useful and
+actively open source software for Linux.
+
+2. Install necessary tools
+--------------------------
+
+If you want to create a database you will need the following tools installed:
+
+* ctags
+* xgettext
+* GNU tar
+* FOSSology (if you want to extract licenses) -- http://www.fossology.org/
+* Ninka (if you want to extract licenses) -- https://github.com/dmgerman/ninka/
+* python-tlsh (if you want TLSH checksums) -- https://github.com/trendmicro/tlsh
+
+python-tlsh is popping up in more and more distributions, but it might be
+necessary to configure, compile and install by hand.
+
+3. Create meta files
+--------------------
+
+There are a few meta files that need to be created in the directory with
+downloaded sources. They need to be created in this order:
+
+* SHA256SUM -- this is a file that, despite its name, contains several hashes
+for each archive in a directory (and not just SHA256)
+* LIST -- main file used by the database creation script, lists package,
+version, package name and origin
+* MANIFESTS/* -- a directory with files with hashes for each file in an archive
+* DOWNLOADURL -- a file with download URL of each package, plus project website
+
+Some example files for the Linux kernel can be found in the subdirectory
+'database-example-files'
+
+  Generating SHA256SUM
+
+In the BAT source directory 'maintenance' there is a script called
+'updatesha256sum.py'. It can be invoked as follows:
+
+$ python updatesha256sum.py -f /path/to/directory/with/files
+
+This script will then generate a file called SHA256SUM in
+/path/to/directory/with/files
+
+Example:
+
+$ python updatesha256sum.py -f /data/sources/kernel
+
+By default in this file the following hashes will be recorded:
+
+* SHA256
+* MD5
+* SHA1
+* CRC32
+* TLSH (if python-tlsh is installed)
+
+Each line of the file is tab separated. The first line of the file describes
+the hashes and order that are in the file.
+
+  Generating LIST
+
+In the directory 'maintenance' there is a script called 'generatelist.py'. It
+can be invoked as follows:
+
+$ python generatelist.py -f /path/to/directory/with/files -o origin
+
+Example:
+
+$ python generatelist.py -f /data/sources/gnome -o gnome
+
+Output is printed on standard out and needs to be directed. It is also highly
+recommended to sort the output first (the database creation script caches
+results of the previous run to prevent duplicate scanning), for example:
+
+$ python generatelist.py -f /data/sources/gnome -o gnome | sort > /data/sources/gnome/LIST
+
+The script will output a line per package with the following
+information (tab separated):
+
+* package name
+* version
+* archive name
+* origin (optional)
+
+Only files with known archive extensions are included, for example:
+  * tar.gz, tgz
+  * zip, jar
+  * tbz2, tar.bz2
+  * etc.
+
+The script tries to automatically split the archive name into a package name
+and package version. This is not always easy, as there are many naming
+conventions in use by several distributions and some distributions use different
+names for packages. That is why it is necessary to manually check the output of
+this script, or to write scripts specifically for source code from various
+origins. As an example of how this can be done F-Droid there is an example
+script called 'generatelist-fdroid.py' in the 'mantenance' directory.
+
+  Generating MANIFESTS/* files
+
+First create a directory called "MANIFESTS" inside of the directory with sources:
+
+$ mkdir /path/to/directory/with/files/MANIFESTS
+
+A script called 'createmanifests.py' can be found in the directory
+'maintenance' in the BAT source directory. This script unpacks each archive
+listed in the LIST file created in the previous step, unpacks it, and computes
+checksums for each file found in the archive and stores it as a bzip2
+compressed file in the 'MANIFESTS' directory.
+
+The script can be invoked as follows:
+
+$ python createmanifests -u -f /path/to/directory/with/files
+
+for example:
+
+$ python createmanifests.py -u -f /data/sources/gnome
+
+The name of a file in the MANIFESTS directory is actually the sha256 checksum
+of the file, to avoid duplication and work around the fact that sometimes
+archives with different contents use the same name.
+
+
+  Creating DOWNLOADURL file
+
+The DOWNLOADURL file is optional, but it can be used to store useful metadata
+about files in the database that is useful for for example reporting. This file
+should have two fields per line, separated by a tab. The fields are are the
+download URL of the archive (including the archive name), plus the website of
+the project.
+
+This information, if present, will be stored in the database in the database
+table "processed".
+
+4. Start the database server
+----------------------------
+
+Before the database creation script can be run the database server needs to be
+started.
+
+5. configure database creation script
+-------------------------------------
+
+The database needs a configuration file. In the standard distribution a sample
+configuration file is provided. This configuration file contains a few
+sections, some generic, some specific to certain packages.
+
+The first part of the configuration file sets various options. The type of this
+configuration is set to 'global':
+
+  [extractconfig]
+  configtype = global
+
+Inside this configuration file there are various settings, for example for the
+database (user, password and database table):
+
+  postgresql_user     = bat
+  postgresql_password = bat
+  postgresql_db       = bat
+
+Optionally there are also settings in case the database server runs on a
+different port or machine:
+
+  postgresql_port     = 5432
+  postgresql_host     = 127.0.0.1
+
+There are a few settings related to unpacking archives:
+
+  cleanup = yes
+  unpackdir = /ramdisk
+
+The 'cleanup' option (default: yes) is used to indicate whether or not the
+unpacked source code archive should be removed after processing. Needless to
+say it is highly recommended to keep this set to 'yes' to avoid that the disk
+fills up. Only set it to 'no' for debugging purposes.
+
+The 'unpackdir' option can be used to specify a different location for
+unpacking source code (default: /tmp). Good reasons for changing this:
+
+1. many recent Linux distributions mount /tmp on a ramdisk, and might be
+limited in space. Also, /tmp is used by other applications and filling up this
+partition might cause other programs to fail
+
+2. in case /tmp is not mounted on a ramdisk but regular disk (or even SSD) and
+there is a lot of RAM available it might make sense to create a ramdisk to
+speed up unpacking. For large archives (Linux kernel, Qt, Chromium,
+LibreOffice, etc.) the speed up will be significant.
+
+There are a few settings related to enabling or disabling license scanning,
+copyright scanning and (basic) security scanning:
+
+  scanlicense = yes
+  scancopyright = yes
+  scansecurity = yes
+
+License scanning is done with FOSSology and Ninka. Copyright scanning is done
+using regular expressions lifted from FOSSology. Security scanning is
+implemented as a very basic feature using regular expressions that mark certain
+smells from the CERT Secure Coding Standard. For CVE scanning another script
+should be used (see later).
+
+The other settings are related to which data to extract and especially which
+data to ignore.
+
+  extrahashes = md5:sha1:crc32:tlsh
+  nomoschunks = 10
+  urlcutoff = 1000
+  maxstringcutoff = 1000
+  minstringcutoff = 4
+  cutoff = 209715200
+
+The settings 'minstringcutoff' and 'maxstringcutoff' determine the minimum and
+maximum length of the string literals that are stored. It is very highly
+recommended to not change 'minstringcutoff', as it will put a lot of data in
+the database that will be completely useless. It is also recommended to not
+increase 'maxstringcutoff', although decreasing does not matter that much.
+
+The setting 'extrahashes' can be used to set which hashes are computed next
+to SHA256. It is very highly recommended to keep the the default settings, as
+this has been hardcoded in the BAT program itself as well.
+
+In the database creation script URLs are extracted using regular expressions
+that are also used in FOSSology. These regular expressions are not the most
+robust ones and might every now and then match too much data. To prevent bogus
+data to end up in the database the setting 'urlcutoff' can be used. By default
+it is set to a very conservative value and it likely can be lowered. It is
+advised to not increase it.
+
+....
+
+In case there is another database from which results should be copied (example:
+to prevent scanning time) then it can be set as follows:
+
+  auth_postgresql_user     = bat
+  auth_postgresql_password = bat
+  auth_postgresql_db       = bat.old
+
+Optionally there are also settings in case the database server runs on a
+different port or machine:
+
+  auth_postgresql_port     = 5432
+  auth_postgresql_host     = 127.0.0.1
+
+In case the two configured databases are the same, then the auth_* settings
+will be ignored.
+
+Currently the only results that will be copied are license and copyright
+information. It should be noted that this setting should be used with very
+great care and only be used if you know exactly what you are doing. It should
+not be used if:
+
+* the license/copyright scanners have been changed
+* the data in the authoritive database is incorrect
+
+...
+
+By default only files with specific extensions are scanned. The extensions (with
+a mapping to the programming language) can be found in the file
+'batextensions.py'. Sometimes there are additional files that need to be scanned
+that are package specific. These can be specified in additional sections. These
+sections have to have 'configtype' set to 'package'. For example, for the bash
+package there are additional files with identifiers that end up in the binary.
+The files with these identifiers have the extension ".def" and the language
+would be 'C'. In that case this can be configured as follows in the
+configuration file:
+
+  [bash]
+  configtype = package
+  extensions = .def:C
+
+The value for "extensions" is a space separated list. Each item has an
+extension and language identifier, separated by colons. If two extensions
+should be configured, then it works as follows:
+
+  extensions = .foo:C .bar:Java
+
+Sometimes files need to be explicitely disabled, as the data from it is not
+useful. One example is Qt (and also Chromium), where some generated code should
+be ignored:
+
+[qt]
+configtype = package
+blacklist = icudt46l_dat.S:icudt42l_dat.S:icudtl_dat.S:icudt42l_dat.s
+
+Each file (without path components) to be ignored is in a colon separated list.
+
+It should be noted that the name of the section should match the name of the
+package in the LIST file.
+
+6. run database creation script
+-------------------------------
+
+$ python createdb.py -c /path/to/configuration -f /path/to/directory/with/archives
+
+for example:
+
+$ python createdb.py -c createdb.config -f /data/sources/zlib
+
+After the script has successfully run the data should be in the database. This
+can easily be checked by querying the database, for example the table
+"processed", as that table will be filled last.
+
+7. find 'third party' code
+--------------------------
+
+Sometimes it is very clear to see from the path name of a file that code has
+been copied from a different package, because for example it has the word
+'thirdparty' in one of the path components.
+
+To discover whether or not code is 'third party code' (copied from another
+package) there is a script in the 'maintenance' directory that will connect to
+the database and records any instances of third party code. This script, called
+'findthirdparty.py' can be invoked as follows:
+
+$ python findthirdparty.py -c /path/to/configuration
+
+for example:
+
+$ python findthirdparty.py -c createdb.config
+
+8. find 'clones'
+----------------
+
+Optionally it might be useful to detect 'clones' in the database, so the
+packages can for example be marked as third party, or as clones. To detect
+these clones a script 'findclones.py' can be found in the 'maintenance'
+directory.
+
+$ python findclones.py -c /path/to/configuration
+
+for example:
+
+$ python findclones.py -c createdb.config
+
+The output of this script will be a list of identical packages (where the
+contents are exactly the same in the database), or partial, where one package
+contains the other.
+
+9. extra sanity checks
+----------------------
+
+For several reasons the database could be out of sync, for example if the
+database creation script exited, having written some data to the database. In
+this case it might be useful to run a sanity check. In the directory
+'maintenance' there is a script called 'verifydb.py' that can be used to flag
+issues in some tables of the database.
+
+10. adding Linux distribution specific information
+--------------------------------------------------
+
+BAT has a scan to search the name of a file in a Linux distribution. In the
+directory 'maintenance' there are two scripts to populate the database with
+information from Debian and Fedora.
+
+The script for Debian is called 'createfiledatabasedebian.py' and uses
+information that can be downloaded from any Debian FTP site in the 'dists'
+directory, namely the files 'Contents-*.gz', for example: dists/Debian8.6/main/
+
+The script for Debian takes these files and puts the information in the
+database:
+
+$ python createfiledatabasedebian.py -c /path/to/configuration -f /path/to/debian/file
+
+for example:
+
+$ python createfiledatabasedebian.py -c createdb.config -f /home/bat/debian/Contents-i386.gz
+
+The files used in Fedora are a bit different. Information is distributed in
+bzip2 compressed sqlite databases, which can be found in the 'repodata'
+directory on Fedora distribution sites. For example, for Fedora 24 on x86_64
+this data would be in linux/releases/24/Everything/x86_64/os/repodata/
+
+There are no consistent names, but you should grab the files that end with
+'filelists.sqlite.bz2' and 'primary.sqlite.bz2'. These files should be stored
+and then uncompressed so they can be processed.
+
+The script for Fedora takes these files and puts the information in the
+database:
+
+$ python createfiledatabasefedora.py -c /path/to/configuration -s version -f /path/to/filelists.sqlite -p /path/to/primary.sqlite
+
+11. run CVE processor
+---------------------
+
+To match file checksums with CVE numbers there is a script available called
+'cveparser.py' that parses CVE files and tries to match file paths mentioned in
+the free text field, as well as file paths from patches, to file paths in the
+database. In the script some assumptions are made about how origins of files
+are named and a translation table is used in the script.
+
+$ python cveparser.py -c /path/to/configuration -f /path/to/cvefile
+
+for example:
+
+$ python cveparser.py -c createdb.config -f /home/bat/cve/nvdcve-2.0-2014.xml
+
+The results are automatically written to the database and can be found in the
+table 'security_cve'.
+
+
+APPENDIX A: RECREATING AN EXISTING DATABASE
+
+To recreate an existing database the metadata from the "processed" data should
+be dumped and massaged into the metadata files as described earlier. For
+recreating a LIST file there is a script called 'dumplist.py' in the
+'maintenance' directory. It can be invoked as follows:
+
+$ python dumplist.py -l /path/to/list/file -c /path/to/configuration -o origin
+
+for example:
+
+$ python dumplist.py -l /tmp/OLDLIST -c ~/bat/maintenance/createdb.config -o kernel
+
+which will write all entries from the origin 'kernel' to the file
+'/tmp/OLDLIST'. The configuration file that is used is the same that is used to
+create the database.
+
+The '-o' flag is optional: if it is set then only entries from that particular
+origin will be written to the file. If not, then all entries from the
+'processed' table will be written.
+
+APPENDIX B: DATABASE DESIGN
+
+The BAT manual already contains a description of the database tables. This text
+is to provide some additional background about certain choices and how to
+generate some of the essential data.
+
+
+  Regular tables vs caching tables
+
+In BAT there are various tables:
+
+* tables holding regular data
+* 'caching' tables
+
+The tables holding regular data are filled by the database creation script.
+The database caching scripts need to be created separately.
+
+The caching tables are merely there for convenience to prevent expensive join
+operations on the tables. The reason is that the data in the 'extracted_*'
+tables do not contain any package information, but just checksums, because
+files tend to be copied into many versions of different packages ('cloning').
+One package where this is very visible is the Linux kernel: the differences
+between certain versions is often just a few files, and there are many
+thousands of identical files. Storing package and version name with the
+extracted identifiers would lead to a monstrous explosion in the database,
+which is why most of the tables use SHA256 hashes instead of package name
+and version.
+
+The schema for the caching database tables can be found in the file
+'postgresql-table.sql' in the directory 'maintenance'.
+
+To create the caching databases the following should be done for each
+identifier:
+
+1. select the checksums for the identifier, plus the associated language (as
+there are caching tables per language family)
+
+2. for each checksum in 1. look up the package name and file name (without path
+components)
+
+3. store the identifier, with package name and file name from 2.
+
+The score cache builds on the caches and can be computed by running the script
+'scorecache.py' (still needs to be converted to use PostgreSQL instead of
+sqlite).
