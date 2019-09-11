@@ -2114,6 +2114,7 @@ def lookup_identifier(scanqueue, reportqueue, cursor, conn, scanenv, topleveldir
 							filenames[sourcefilename] = [package]
 						else:
 							filenames[sourcefilename] = list(set(filenames[sourcefilename] + [package]))
+					scalar = 1
 
 					if len(pkgs) != 1:
 						nonUniqueMatchLines.append(line)
@@ -2125,14 +2126,14 @@ def lookup_identifier(scanqueue, reportqueue, cursor, conn, scanenv, topleveldir
 
 						## now determine the score for the string
 						try:
-							score = len(line) / pow(alpha, (len(filenames) - 1))
+							score = (1 * scalar) / pow(total_num_pkgs, len(filenames))
 						except Exception, e:
 							## pow(alpha, (len(filenames) - 1)) is overflowing here
 							## so the score would be very close to 0. The largest value
 							## is sys.maxint, so use that one. The score will be
 							## smaller than almost any value of scorecutoff...
 							if usesourceorder:
-								score = len(line) / sys.maxint
+								score = (1 * scalar) / pow(total_num_pkgs, len(filenames))
 							else:
 								matchednonassigned = True
 								matchednonassignedlines += 1
@@ -2289,7 +2290,7 @@ def lookup_identifier(scanqueue, reportqueue, cursor, conn, scanenv, topleveldir
 				if not package in uniqueScore:
 					uniqueScore[package] = 0
 				for line in uniqueMatches[package]:
-					uniqueScore[package] += len(line[0])
+					score = (1 * scalar) / pow(total_num_pkgs, len(filenames))
 
 			directAssignedScore = {}
 			for package in directAssignedString:
