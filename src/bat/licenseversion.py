@@ -1881,7 +1881,8 @@ def lookup_identifier(scanqueue, reportqueue, cursor, conn, scanenv, topleveldir
 
 			stringquery = "select package, filename FROM %s WHERE stringidentifier=" % stringsdbperlanguagetable[language] + "%s"
 			total_num_pkgs_query = "SELECT distinct(count(package)) FROM processed"
-			total_num_pkgs = cursor.execute(total_num_pkgs_query)
+			cursor.execute(total_num_pkgs_query)
+			total_num_pkgs = cursor.fetchall()
 			print(total_num_pkgs)
 
 			for line in lines:
