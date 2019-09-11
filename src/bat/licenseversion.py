@@ -1880,6 +1880,9 @@ def lookup_identifier(scanqueue, reportqueue, cursor, conn, scanenv, topleveldir
 				lines.sort()
 
 			stringquery = "select package, filename FROM %s WHERE stringidentifier=" % stringsdbperlanguagetable[language] + "%s"
+			total_num_pkgs_query = "SELECT distinct(count(package)) FROM processed"
+			total_num_pkgs = cursor.execute(total_num_pkgs_query)
+			print(total_num_pkgs)
 
 			for line in lines:
 				#if scandebug:
